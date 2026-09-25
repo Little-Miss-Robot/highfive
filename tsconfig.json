@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "lib": ["ES6", "dom", "dom.iterable"],
+    "strict": true,
+    "noImplicitAny": false,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "sourceMap": true,
+    "module": "esnext",
+    "moduleResolution": "Bundler",
+    "target": "es2017",
+    "outDir": "dist",
+  },
+  "include": [
+    "src/**/*"
+  ]
+}
