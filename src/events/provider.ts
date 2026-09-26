@@ -7,12 +7,10 @@ export interface EventsDependencies<E extends object> extends Dependencies {
     eventBus: () => EventBus<E>
 }
 
-export function createEventsProvider<E extends object>(): ServiceProvider<EventsDependencies<E>> {
-    return {
-        register(container) {
-            container.singleton('eventBus', () => {
-                return new InMemoryEventBus<E>();
-            });
-        },
-    };
-}
+const eventsProvider = <E extends object>(): ServiceProvider<EventsDependencies<E>> => ({
+    register(container) {
+        container.singleton('eventBus', () => new InMemoryEventBus<E>());
+    },
+});
+
+export default eventsProvider;
