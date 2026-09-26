@@ -1,3 +1,12 @@
+export enum LogLevel {
+    ERROR,
+    WARNING,
+    INFO,
+}
+
 export interface Logger {
-    log: (message: string) => void
+    error: (message: string) => void
+    warning: (message: string) => void
+    info: (message: string) => void
+    log: (level: LogLevel, message: string) => void
 }

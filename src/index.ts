@@ -1,6 +1,5 @@
 import container from './container';
-import singleFlight from './decorators/singleFlight';
-import { trace } from './decorators/trace';
+import timeout from './decorators/timeout';
 
 container.make('http').say('Nice!');
 
@@ -16,11 +15,11 @@ container.bind('idGenerator', () => {
     };
 });
 
-container.make('logger').log(
+container.make('logger').info(
     container.make('idGenerator').generate(),
 );
 
-container.make('logger').log(
+container.make('logger').info(
     container.make('idGenerator').generate(),
 );
 
@@ -29,11 +28,10 @@ const wait = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms
 class TourService {
     calls = 0;
 
-    @trace('tour.get')
-    @singleFlight((id: string) => id)
+    @timeout(5_000)
     async getTour(id: string): Promise<string> {
         this.calls++;
-        await wait(50);
+        await wait(50000);
         return `Tour ${id}`;
     }
 }

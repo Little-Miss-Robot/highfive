@@ -9,6 +9,6 @@ export default class LoggerAnalytics implements Analytics {
     }
 
     public track(event: string, properties: AnalyticsProperties | undefined): void {
-        this.logger.log(`[Analytics] Event: ${event}, Data: ${JSON.stringify(properties)}`);
+        this.logger.info(`[Analytics] Event: ${event}, Data: ${JSON.stringify(properties)}`);
     }
 }
