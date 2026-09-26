@@ -1,7 +1,7 @@
 import type { Dependencies } from '../container/Container';
 import type { ServiceProvider } from '../container/ServiceProvider';
 import type { Clock } from './Clock';
-import CurrentTimeClock from './CurrentTimeClock';
+import SystemClock from './SystemClock';
 
 export interface ClockDependencies extends Dependencies {
     clock: () => Clock
@@ -9,7 +9,7 @@ export interface ClockDependencies extends Dependencies {
 
 const clockProvider: ServiceProvider<ClockDependencies> = {
     register(container) {
-        container.singleton('clock', () => new CurrentTimeClock());
+        container.singleton('clock', () => new SystemClock());
     },
 };
 

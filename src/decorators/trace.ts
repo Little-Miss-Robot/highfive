@@ -1,6 +1,6 @@
 import container from '../container';
 
-export function trace(name?: string) {
+export default function trace(name?: string) {
     return function <This, Args extends unknown[], Result>(
         method: (this: This, ...args: Args) => Promise<Result>,
         context: ClassMethodDecoratorContext<

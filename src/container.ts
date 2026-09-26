@@ -1,33 +1,28 @@
-import type { EventBus } from './events/EventBus';
 import analyticsProvider from './analytics/provider';
+import cacheProvider from './cache/provider';
 import clockProvider from './clock/provider';
-import { Container } from './container/Container';
-import InMemoryEventBus from './events/InMemoryEventBus';
+import { InteropContainer } from './container/InteropContainer';
+import diagnosticsProvider from './diagnostics/provider';
 import eventsProvider from './events/provider';
 import executionProvider from './execution/provider';
 import httpProvider from './http/provider';
 import identifiersProvider from './identifiers/provider';
 import loggerProvider from './logger/provider';
 
-const container = new Container<{
-    authEvents: () => EventBus<{
-        loggedin: { name: string }
-    }>
-}>()
+export interface DadjokeEvents {
+    received: string
+}
+
+const container = new InteropContainer()
     .register(identifiersProvider)
     .register(clockProvider)
-    .register(executionProvider)
     .register(loggerProvider)
+    .register(diagnosticsProvider)
+    .register(executionProvider)
+    .register(cacheProvider)
     .register(httpProvider)
     .register(analyticsProvider)
-    .register(eventsProvider<{
-        click: { id: string }
-    }>())
-    .singleton('authEvents', () => new InMemoryEventBus())
+    .register(eventsProvider<DadjokeEvents>())
 ;
-
-container.make('authEvents').emit('loggedin', { name: 'nice' });
-
-container.make('events').emit('click', { id: 'Nice!' });
 
 export default container;

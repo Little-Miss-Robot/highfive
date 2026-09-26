@@ -1,60 +1,39 @@
-import container from './container';
-import timeout from './decorators/timeout';
+import cache from './decorators/cache';
+import emit from './decorators/emit';
+import log from './decorators/log';
+import trace from './decorators/trace';
+import events from './facades/events';
+import http from './facades/http';
+import logger from './facades/logger';
 
-container.make('http').say('Nice!');
+events().on('received', e => logger().info(e));
 
-container.make('analytics').track('page_view', {
-    id: container.make('idGenerator').generate(),
-});
+class DadjokeService {
+    @trace('Get dadjoke')
+    @log()
+    @emit(events(), 'received')
+    @cache('dadjoke', 60_000)
+    static async get(): Promise<string> {
+        const response = await http().get('https://icanhazdadjoke.com', {
+            headers: {
+                Accept: 'application/json',
+            },
+        });
 
-container.bind('idGenerator', () => {
-    return {
-        generate(): string {
-            return `${Math.random()}`;
-        },
-    };
-});
-
-container.make('logger').info(
-    container.make('idGenerator').generate(),
-);
-
-container.make('logger').info(
-    container.make('idGenerator').generate(),
-);
-
-const wait = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
-
-class TourService {
-    calls = 0;
-
-    @timeout(5_000)
-    async getTour(id: string): Promise<string> {
-        this.calls++;
-        await wait(50000);
-        return `Tour ${id}`;
+        return await response.text();
     }
 }
 
+function wait(durationMs: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, durationMs));
+}
+
 async function test() {
-    const service = new TourService();
+    const joke1 = await DadjokeService.get();
+    await wait(5000);
+    const joke10 = await DadjokeService.get();
 
-    const [first, second] = await Promise.all([
-        service.getTour('123'),
-        service.getTour('123'),
-    ]);
-
-    console.log(first, second); // Tour 123, Tour 123
-    console.log(service.calls); // 1: concurrent calls shared the work
-
-    await service.getTour('123');
-    console.log(service.calls); // 2: completed work isn't cached
-
-    await Promise.all([
-        service.getTour('123'),
-        service.getTour('456'),
-    ]);
-    console.log(service.calls); // 4: different IDs run separately
+    console.log(joke1, joke10);
 }
 
 void test();

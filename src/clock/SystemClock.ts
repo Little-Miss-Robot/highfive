@@ -1,6 +1,6 @@
 import type { Clock } from './Clock';
 
-export default class CurrentTimeClock implements Clock {
+export default class SystemClock implements Clock {
     now(): Date {
         return new Date();
     }

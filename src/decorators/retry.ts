@@ -1,7 +1,7 @@
 import type { RetryOptions } from '../execution/RetryPolicy';
 import container from '../container';
 
-export function retry(options: RetryOptions = {}) {
+export default function retry(options: RetryOptions = {}) {
     return function <This, Args extends unknown[], Result>(
         method: (this: This, ...args: Args) => Promise<Result>,
         _context: ClassMethodDecoratorContext<This, (this: This, ...args: Args) => Promise<Result>>,

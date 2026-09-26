@@ -3,8 +3,6 @@ import type { ServiceProvider } from '../container/ServiceProvider';
 import type { Deduplicator } from './Deduplicator';
 import type { RetryPolicy } from './RetryPolicy';
 import type { Timeout } from './Timeout';
-import type { Tracer } from './Tracer';
-import { ConsoleTracer } from './ConsoleTracer';
 import { DefaultRetryPolicy } from './DefaultRetryPolicy';
 import DefaultTimeout from './DefaultTimeout';
 import { SingleFlightDeduplicator } from './SingleFlightDeduplicator';
@@ -12,7 +10,6 @@ import { SingleFlightDeduplicator } from './SingleFlightDeduplicator';
 export interface ExecutionDependencies extends Dependencies {
     deduplicator: () => Deduplicator
     retryPolicy: () => RetryPolicy
-    tracer: () => Tracer
     timeout: () => Timeout
 }
 
@@ -24,10 +21,6 @@ const executionProvider: ServiceProvider<ExecutionDependencies> = {
 
         container.singleton('retryPolicy', () => {
             return new DefaultRetryPolicy();
-        });
-
-        container.singleton('tracer', () => {
-            return new ConsoleTracer();
         });
 
         container.singleton('timeout', () => {

@@ -41,7 +41,8 @@ export function testTimeoutContract(
                 await rejection;
 
                 expect(operationSignal?.aborted).toBe(true);
-            } finally {
+            }
+            finally {
                 vi.useRealTimers();
             }
         });
