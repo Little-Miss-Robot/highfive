@@ -1,5 +1,5 @@
 import { resolve } from '@implementations/container';
 
-export function cache() {
-    return resolve('cache');
+export function fs() {
+    return resolve('filesystem');
 }

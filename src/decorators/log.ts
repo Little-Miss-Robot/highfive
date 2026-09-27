@@ -1,4 +1,4 @@
-import { resolve } from '@implementations/container/useContainer';
+import { resolve } from '@implementations/container';
 
 function describeReceiver(receiver: unknown): string {
     if (typeof receiver === 'function') {

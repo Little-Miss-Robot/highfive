@@ -1,4 +1,4 @@
-import { resolve } from '@implementations/container/useContainer';
+import { resolve } from '@implementations/container';
 
 export function timeout(durationMs: number) {
     return function <This, Args extends unknown[], Result>(

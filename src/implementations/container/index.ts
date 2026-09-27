@@ -3,7 +3,6 @@ import type { AnalyticsDependencies } from '@implementations/analytics/provider'
 import type { CacheDependencies } from '@implementations/cache/provider';
 import type { ClockDependencies } from '@implementations/clock/provider';
 import type { DiagnosticsDependencies } from '@implementations/diagnostics/provider';
-import type { EventsDependencies } from '@implementations/events/provider';
 import type { ExecutionDependencies } from '@implementations/execution/provider';
 import type { HttpDependencies } from '@implementations/http/provider';
 import type { IdentifiersDependencies } from '@implementations/identifiers/provider';
@@ -12,7 +11,7 @@ import { InteropContainer } from '@implementations/container/InteropContainer';
 
 let activeContainer: unknown;
 
-export type InteropDependencies<E extends object = object> =
+export type InteropDependencies =
     CacheDependencies
     & DiagnosticsDependencies
     & ExecutionDependencies
@@ -20,8 +19,7 @@ export type InteropDependencies<E extends object = object> =
     & LoggerDependencies
     & HttpDependencies
     & AnalyticsDependencies
-    & ClockDependencies
-    & EventsDependencies<E>;
+    & ClockDependencies;
 
 export function createContainer<
     T extends Dependencies = {},

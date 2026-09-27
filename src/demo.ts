@@ -1,7 +1,8 @@
 import type { EventBus } from '@contracts/events/EventBus';
 import { cached } from '@decorators/cache';
 import { emit } from '@decorators/emit';
-import { createContainer, useContainer } from '@implementations/container/useContainer';
+import { createContainer, useContainer } from '@implementations/container';
+
 import {
     analyticsProvider,
     cacheProvider,

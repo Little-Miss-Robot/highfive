@@ -1,4 +1,4 @@
-import { resolve } from '@implementations/container/useContainer';
+import { resolve } from '@implementations/container';
 
 export function cached<KeyArgs extends unknown[]>(
     keyOrKeyFor: string | ((...args: KeyArgs) => string),

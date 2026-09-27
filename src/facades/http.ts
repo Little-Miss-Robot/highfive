@@ -1,4 +1,4 @@
-import { resolve } from '@implementations/container/useContainer';
+import { resolve } from '@implementations/container';
 
 export function http() {
     return resolve('http');

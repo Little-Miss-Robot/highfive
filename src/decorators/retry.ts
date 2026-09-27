@@ -1,5 +1,5 @@
 import type { RetryOptions } from '@contracts/execution/RetryPolicy';
-import { resolve } from '@implementations/container/useContainer';
+import { resolve } from '@implementations/container';
 
 export function retry(options: RetryOptions = {}) {
     return function <This, Args extends unknown[], Result>(

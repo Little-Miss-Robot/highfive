@@ -1,4 +1,4 @@
-import { resolve } from '@implementations/container/useContainer';
+import { resolve } from '@implementations/container';
 
 export function id() {
     return resolve('idGenerator');
