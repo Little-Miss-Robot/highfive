@@ -30,7 +30,7 @@ jobs:
         run: |
           npm ci  # Use `npm ci` to install dependencies cleanly for CI
           
-      # Run Jest tests
-      - name: Run Jest tests
+      # Run tests
+      - name: Run tests
         run: |
           npm run test
