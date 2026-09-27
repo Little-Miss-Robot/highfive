@@ -10,7 +10,7 @@ beforeEach(() => {
 });
 
 testCacheContract(
-    'MemoryCache',
+    'LocalStorageCache',
     () => new LocalStorageCache('test', clock),
     durationMs => clock.advance(durationMs),
 );
