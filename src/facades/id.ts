@@ -1,5 +1,5 @@
 import { resolve } from '@implementations/container';
 
 export function id() {
-    return resolve('idGenerator');
+    return resolve('idGenerator').generate();
 }
