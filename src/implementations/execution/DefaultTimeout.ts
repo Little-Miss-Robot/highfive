@@ -1,7 +1,7 @@
 import type { Timeout } from '@contracts/execution/Timeout';
-import { TimeoutError } from '../../errors/TimeoutError';
+import { TimeoutError } from '@errors/TimeoutError';
 
-export default class DefaultTimeout implements Timeout {
+export class DefaultTimeout implements Timeout {
     async run<T>(
         operation: (signal: AbortSignal) => Promise<T>,
         durationMs: number,

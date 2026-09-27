@@ -1,5 +1,5 @@
-import container from '../container';
+import { resolve } from '@implementations/container/useContainer';
 
-export default function logger() {
-    return container.make('logger');
+export function logger() {
+    return resolve('logger');
 }

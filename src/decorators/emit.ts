@@ -1,6 +1,6 @@
 import type { EventBus } from '@contracts/events/EventBus';
 
-export default function emit<
+export function emit<
     E extends object,
     K extends keyof E & string,
 >(

@@ -7,12 +7,10 @@ export interface IdentifiersDependencies extends Dependencies {
     idGenerator: () => IdGenerator
 }
 
-const identifiersProvider: ServiceProvider<IdentifiersDependencies> = {
+export const identifiersProvider: ServiceProvider<IdentifiersDependencies> = {
     register(container) {
         container.singleton('idGenerator', () => {
             return new CryptoIdGenerator();
         });
     },
 };
-
-export default identifiersProvider;

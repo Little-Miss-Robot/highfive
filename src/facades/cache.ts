@@ -1,5 +1,5 @@
-import container from '../container';
+import { resolve } from '@implementations/container/useContainer';
 
-export default function cache() {
-    return container.make('cache');
+export function cache() {
+    return resolve('cache');
 }

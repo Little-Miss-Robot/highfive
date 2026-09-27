@@ -1,5 +1,5 @@
-import container from '../container';
+import { resolve } from '@implementations/container/useContainer';
 
-export default function analytics() {
-    return container.make('analytics');
+export function analytics() {
+    return resolve('analytics');
 }

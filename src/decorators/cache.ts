@@ -1,6 +1,6 @@
-import container from '../container';
+import { resolve } from '@implementations/container/useContainer';
 
-export default function cache<KeyArgs extends unknown[]>(
+export function cached<KeyArgs extends unknown[]>(
     keyOrKeyFor: string | ((...args: KeyArgs) => string),
     ttlMs?: number,
 ) {
@@ -13,7 +13,7 @@ export default function cache<KeyArgs extends unknown[]>(
                 ? keyOrKeyFor
                 : keyOrKeyFor(...args);
 
-            const cache = container.make('cache');
+            const cache = resolve('cache');
             const cachedValue = await cache.get(key);
 
             if (cachedValue !== undefined) {

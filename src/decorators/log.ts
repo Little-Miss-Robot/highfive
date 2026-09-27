@@ -1,4 +1,4 @@
-import container from '../container';
+import { resolve } from '@implementations/container/useContainer';
 
 function describeReceiver(receiver: unknown): string {
     if (typeof receiver === 'function') {
@@ -12,7 +12,7 @@ function describeReceiver(receiver: unknown): string {
     return String(receiver);
 }
 
-export default function logResult(
+export function log(
     formatResult: (value: unknown) => string = String,
     formatReceiver: (receiver: unknown) => string = describeReceiver,
 ) {
@@ -26,7 +26,7 @@ export default function logResult(
         return async function (this: This, ...args: Args): Promise<Result> {
             const result = await method.apply(this, args);
 
-            container.make('logger').info(
+            resolve('logger').info(
                 `${formatReceiver(this)}.${String(context.name)} returned: ${formatResult(result)}`,
             );
 

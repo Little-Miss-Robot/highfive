@@ -1,5 +1,5 @@
-import container from '../container';
+import { resolve } from '@implementations/container/useContainer';
 
-export default function clock() {
-    return container.make('clock');
+export function clock() {
+    return resolve('clock');
 }

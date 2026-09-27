@@ -4,10 +4,17 @@ export interface ProviderContext<
     Provides extends Dependencies,
     Requires extends Dependencies,
 > {
-    make: <K extends keyof Requires>(
-        name: K,
-        ...args: Parameters<Requires[K]>
-    ) => ReturnType<Requires[K]>
+    make: {
+        <K extends keyof Provides>(
+            name: K,
+            ...args: Parameters<Provides[K]>
+        ): ReturnType<Provides[K]>
+
+        <K extends keyof Requires>(
+            name: K,
+            ...args: Parameters<Requires[K]>
+        ): ReturnType<Requires[K]>
+    }
 
     bind: <K extends keyof Provides>(name: K, factory: Provides[K]) => void
     singleton: <K extends keyof Provides>(name: K, factory: Provides[K]) => void

@@ -9,7 +9,7 @@ type ListenerMap<E> = {
     [K in EventKey<E>]?: ListenerEntry<E, K>[];
 };
 
-export default class InMemoryEventBus<E extends object> implements EventBus<E> {
+export class InMemoryEventBus<E extends object> implements EventBus<E> {
     /**
      * The current id
      * @private

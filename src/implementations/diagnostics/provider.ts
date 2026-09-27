@@ -8,7 +8,7 @@ export interface DiagnosticsDependencies extends Dependencies {
     tracer: () => Tracer
 }
 
-const diagnosticsProvider: ServiceProvider<DiagnosticsDependencies, LoggerDependencies> = {
+export const diagnosticsProvider: ServiceProvider<DiagnosticsDependencies, LoggerDependencies> = {
     register(container) {
         container.singleton('tracer', () => {
             return new LogTracer(
@@ -17,5 +17,3 @@ const diagnosticsProvider: ServiceProvider<DiagnosticsDependencies, LoggerDepend
         });
     },
 };
-
-export default diagnosticsProvider;

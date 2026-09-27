@@ -1,5 +1,5 @@
-import type { Clock } from '../clock/Clock';
-import type { Cache } from './Cache';
+import type { Cache } from '@contracts/cache/Cache';
+import type { Clock } from '@contracts/clock/Clock';
 
 interface StoredEntry {
     value: string

@@ -8,12 +8,10 @@ export interface CacheDependencies extends Dependencies {
     cache: () => Cache
 }
 
-const cacheProvider: ServiceProvider<CacheDependencies, ClockDependencies> = {
+export const cacheProvider: ServiceProvider<CacheDependencies, ClockDependencies> = {
     register(container) {
         container.singleton('cache', () => new MemoryCache(
             container.make('clock'),
         ));
     },
 };
-
-export default cacheProvider;

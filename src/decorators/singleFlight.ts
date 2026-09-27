@@ -1,6 +1,6 @@
-import container from '../container';
+import { resolve } from '@implementations/container/useContainer';
 
-export default function singleFlight<Args extends unknown[] = []>(keyFor?: (...args: Args) => string) {
+export function singleFlight<Args extends unknown[] = []>(keyFor?: (...args: Args) => string) {
     let methodId: string | undefined;
     const instanceIds = new WeakMap<object, string>();
 
@@ -9,7 +9,7 @@ export default function singleFlight<Args extends unknown[] = []>(keyFor?: (...a
         _context: ClassMethodDecoratorContext<This, (this: This, ...args: Args) => Promise<Result>>,
     ) {
         return function (this: This, ...args: Args): Promise<Result> {
-            const idGenerator = container.make('idGenerator');
+            const idGenerator = resolve('idGenerator');
             methodId ??= idGenerator.generate();
 
             let instanceId = instanceIds.get(this);
@@ -19,7 +19,7 @@ export default function singleFlight<Args extends unknown[] = []>(keyFor?: (...a
             }
 
             const key = JSON.stringify(['singleFlight', methodId, instanceId, keyFor?.(...args) ?? '']);
-            return container.make('deduplicator').run(key, () => method.apply(this, args));
+            return resolve('deduplicator').run(key, () => method.apply(this, args));
         };
     };
 };

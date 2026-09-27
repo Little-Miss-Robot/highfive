@@ -1,7 +1,7 @@
 import type { Analytics, AnalyticsPayload } from '@contracts/analytics/Analytics';
 import type { Logger } from '@contracts/logger/Logger';
 
-export default class LoggerAnalytics implements Analytics {
+export class LoggerAnalytics implements Analytics {
     private logger: Logger;
 
     constructor(logger: Logger) {

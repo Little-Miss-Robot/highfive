@@ -2,7 +2,7 @@ import type { Clock } from '@contracts/clock/Clock';
 import type { Logger } from '@contracts/logger/Logger';
 import { LogLevel } from '@contracts/logger/Logger';
 
-export default class ConsoleLogger implements Logger {
+export class ConsoleLogger implements Logger {
     private clock: Clock;
 
     constructor(clock: Clock) {

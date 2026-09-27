@@ -1,6 +1,6 @@
-import container from '../container';
+import { resolve } from '@implementations/container/useContainer';
 
-export default function trace(name?: string) {
+export function trace(name?: string) {
     return function <This, Args extends unknown[], Result>(
         method: (this: This, ...args: Args) => Promise<Result>,
         context: ClassMethodDecoratorContext<
@@ -9,7 +9,7 @@ export default function trace(name?: string) {
         >,
     ) {
         return function (this: This, ...args: Args): Promise<Result> {
-            return container.make('tracer').trace(
+            return resolve('tracer').trace(
                 name ?? String(context.name),
                 () => method.apply(this, args),
             );

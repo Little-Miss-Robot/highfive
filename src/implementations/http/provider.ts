@@ -2,19 +2,17 @@ import type { Dependencies } from '@contracts/container/Container';
 import type { ServiceProvider } from '@contracts/container/ServiceProvider';
 import type { HttpAuth } from '@contracts/http/HttpAuth';
 import type { HttpClient } from '@contracts/http/HttpClient';
-import type { LoggerDependencies } from '@implementations/logger/provider';
-import { BearerHttpAuth } from './BearerHttpAuth';
 import { FetchHttpClient } from './FetchHttpClient';
 
 export interface HttpDependencies extends Dependencies {
     http: () => HttpClient
-    httpAuth: () => HttpAuth
+    httpAuth: () => HttpAuth | undefined
 }
 
-const httpProvider: ServiceProvider<HttpDependencies, LoggerDependencies> = {
+export const httpProvider: ServiceProvider<HttpDependencies> = {
     register(container) {
         container.singleton('httpAuth', () => {
-            return new BearerHttpAuth(async () => 'token');
+            return undefined;
         });
 
         container.singleton('http', () => {
@@ -24,5 +22,3 @@ const httpProvider: ServiceProvider<HttpDependencies, LoggerDependencies> = {
         });
     },
 };
-
-export default httpProvider;

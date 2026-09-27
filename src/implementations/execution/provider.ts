@@ -4,7 +4,7 @@ import type { Deduplicator } from '@contracts/execution/Deduplicator';
 import type { RetryPolicy } from '@contracts/execution/RetryPolicy';
 import type { Timeout } from '@contracts/execution/Timeout';
 import { DefaultRetryPolicy } from './DefaultRetryPolicy';
-import DefaultTimeout from './DefaultTimeout';
+import { DefaultTimeout } from './DefaultTimeout';
 import { SingleFlightDeduplicator } from './SingleFlightDeduplicator';
 
 export interface ExecutionDependencies extends Dependencies {
@@ -13,7 +13,7 @@ export interface ExecutionDependencies extends Dependencies {
     timeout: () => Timeout
 }
 
-const executionProvider: ServiceProvider<ExecutionDependencies> = {
+export const executionProvider: ServiceProvider<ExecutionDependencies> = {
     register(container) {
         container.singleton('deduplicator', () => {
             return new SingleFlightDeduplicator();
@@ -28,5 +28,3 @@ const executionProvider: ServiceProvider<ExecutionDependencies> = {
         });
     },
 };
-
-export default executionProvider;

@@ -1,6 +1,6 @@
-import container from '../container';
+import { resolve } from '@implementations/container/useContainer';
 
-export default function timeout(durationMs: number) {
+export function timeout(durationMs: number) {
     return function <This, Args extends unknown[], Result>(
         method: (this: This, ...args: Args) => Promise<Result>,
         _context: ClassMethodDecoratorContext<
@@ -9,7 +9,7 @@ export default function timeout(durationMs: number) {
         >,
     ) {
         return function (this: This, ...args: Args): Promise<Result> {
-            return container.make('timeout').run(
+            return resolve('timeout').run(
                 () => method.apply(this, args),
                 durationMs,
             );

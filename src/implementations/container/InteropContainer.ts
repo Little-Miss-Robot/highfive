@@ -1,7 +1,7 @@
 import type { Container, Dependencies } from '@contracts/container/Container';
 import type { ProviderContext, ServiceProvider } from '@contracts/container/ServiceProvider';
 
-export default class InteropContainer<B extends Dependencies> implements Container<B> {
+export class InteropContainer<B extends Dependencies> implements Container<B> {
     /**
      *
      * @private

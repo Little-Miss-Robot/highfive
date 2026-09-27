@@ -3,7 +3,11 @@
     "paths": {
       "@contracts/*": ["./src/contracts/*"],
       "@implementations/*": ["./src/implementations/*"],
-      "@errors/*": ["./src/errors/*"]
+      "@errors/*": ["./src/errors/*"],
+      "@testsuite/*": ["./src/testsuite/*"],
+      "@facades/*": ["./src/facades/*"],
+      "@decorators/*": ["./src/decorators/*"],
+      "@fakes/*": ["./src/fakes/*"],
     },
     "lib": ["ES6", "dom", "dom.iterable"],
     "strict": true,
@@ -17,6 +21,6 @@
     "outDir": "dist",
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
   ]
 }

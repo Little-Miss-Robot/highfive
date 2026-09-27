@@ -1,5 +1,5 @@
-import container from '../container';
+import { resolve } from '@implementations/container/useContainer';
 
-export default function http() {
-    return container.make('http');
+export function http() {
+    return resolve('http');
 }
