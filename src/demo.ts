@@ -1,3 +1,4 @@
+import type { EventBus } from '@contracts/events/EventBus';
 import { cached } from '@decorators/cache';
 import { emit } from '@decorators/emit';
 import { createContainer, useContainer } from '@implementations/container/useContainer';
@@ -6,10 +7,10 @@ import {
     cacheProvider,
     clockProvider,
     diagnosticsProvider,
-    eventsProvider,
     executionProvider,
     httpProvider,
     identifiersProvider,
+    InMemoryEventBus,
     loggerProvider,
 } from '@implementations/index';
 
@@ -18,7 +19,9 @@ export interface AppEvents {
 }
 
 const container = useContainer(
-    createContainer()
+    createContainer<{
+        events: () => EventBus<AppEvents>
+    }>()
         .register(identifiersProvider)
         .register(clockProvider)
         .register(loggerProvider)
@@ -27,7 +30,7 @@ const container = useContainer(
         .register(cacheProvider)
         .register(httpProvider)
         .register(analyticsProvider)
-        .register(eventsProvider<AppEvents>()),
+        .singleton('events', () => new InMemoryEventBus<AppEvents>()),
 );
 
 container().make('logger').info('Hello?');

@@ -14,3 +14,4 @@ export * from './identifiers/IdGenerator';
 export * from './logger/Logger';
 export * from './notifications/Notification';
 export * from './notifications/Notifier';
+export * from './serializer/Serializer';
