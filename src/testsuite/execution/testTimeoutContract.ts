@@ -1,4 +1,4 @@
-import type { Timeout } from '../../execution/Timeout';
+import type { Timeout } from '@contracts/execution/Timeout';
 import { describe, expect, it, vi } from 'vitest';
 
 export function testTimeoutContract(

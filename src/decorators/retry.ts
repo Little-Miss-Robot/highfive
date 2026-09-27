@@ -1,4 +1,4 @@
-import type { RetryOptions } from '../execution/RetryPolicy';
+import type { RetryOptions } from '@contracts/execution/RetryPolicy';
 import container from '../container';
 
 export default function retry(options: RetryOptions = {}) {

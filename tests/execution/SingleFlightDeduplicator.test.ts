@@ -1,4 +1,4 @@
-import { SingleFlightDeduplicator } from '../../src/execution/SingleFlightDeduplicator';
+import { SingleFlightDeduplicator } from '../../src/implementations/execution/SingleFlightDeduplicator';
 import { testDeduplicatorContract } from '../../src/testsuite/execution/testDeduplicatorContract';
 
 testDeduplicatorContract('SingleFlightDeduplicator', () => new SingleFlightDeduplicator());

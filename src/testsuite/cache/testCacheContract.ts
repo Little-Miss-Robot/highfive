@@ -1,4 +1,4 @@
-import type { Cache } from '../../cache/Cache';
+import type { Cache } from '@contracts/cache/Cache';
 import { describe, expect, it } from 'vitest';
 
 type AdvanceTime = (durationMs: number) => void | Promise<void>;

@@ -1,7 +1,7 @@
 import { beforeEach } from 'vitest';
-import { LocalStorageCache } from '../../src/cache/LocalStorageCache';
+import AdvanceableClock from '../../src/fakes/clock/AdvanceableClock';
+import { LocalStorageCache } from '../../src/implementations/cache/LocalStorageCache';
 import { testCacheContract } from '../../src/testsuite/cache/testCacheContract';
-import AdvanceableClock from '../fakes/AdvanceableClock';
 
 const clock = new AdvanceableClock();
 

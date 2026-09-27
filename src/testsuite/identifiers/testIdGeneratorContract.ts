@@ -1,4 +1,4 @@
-import type { IdGenerator } from '../../identifiers/IdGenerator';
+import type { IdGenerator } from '@contracts/identifiers/IdGenerator';
 import { describe, expect, it } from 'vitest';
 
 export function testIdGeneratorContract(

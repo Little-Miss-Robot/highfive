@@ -1,4 +1,4 @@
-import type { Deduplicator } from '../../execution/Deduplicator';
+import type { Deduplicator } from '@contracts/execution/Deduplicator';
 import { describe, expect, it } from 'vitest';
 
 function deferred<T>() {

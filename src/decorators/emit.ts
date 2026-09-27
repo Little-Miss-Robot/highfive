@@ -1,4 +1,4 @@
-import type { EventBus } from '../events/EventBus';
+import type { EventBus } from '@contracts/events/EventBus';
 
 export default function emit<
     E extends object,

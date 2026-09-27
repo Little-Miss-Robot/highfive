@@ -1,4 +1,4 @@
-import type { RetryPolicy } from '../../execution/RetryPolicy';
+import type { RetryPolicy } from '@contracts/execution/RetryPolicy';
 import { describe, expect, it } from 'vitest';
 
 export function testRetryPolicyContract(
