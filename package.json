@@ -31,7 +31,7 @@
     "access": "public"
   },
   "scripts": {
-    "generate:barrels": "barrelsby --directory src/contracts src/implementations src/decorators src/errors src/facades src/fakes src/testsuite --singleQuotes --noHeader --delete",
+    "generate:barrels": "barrelsby --directory src/contracts src/implementations src/decorators src/errors src/fakes src/testsuite --singleQuotes --noHeader --delete",
     "build": "tsup",
     "demo": "tsx src/demo.ts",
     "test": "vitest run"

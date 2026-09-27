@@ -1,6 +1,6 @@
-import { resolve } from '@implementations/container';
+import type { Tracer } from '@contracts/diagnostics/Tracer';
 
-export function trace(name?: string) {
+export function trace(tracer: Tracer, name?: string) {
     return function <This, Args extends unknown[], Result>(
         method: (this: This, ...args: Args) => Promise<Result>,
         context: ClassMethodDecoratorContext<
@@ -9,7 +9,7 @@ export function trace(name?: string) {
         >,
     ) {
         return function (this: This, ...args: Args): Promise<Result> {
-            return resolve('tracer').trace(
+            return tracer.trace(
                 name ?? String(context.name),
                 () => method.apply(this, args),
             );

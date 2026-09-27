@@ -1,6 +1,11 @@
-import { resolve } from '@implementations/container';
+import type { Deduplicator } from '@contracts/execution/Deduplicator';
+import type { IdGenerator } from '@contracts/identifiers/IdGenerator';
 
-export function singleFlight<Args extends unknown[] = []>(keyFor?: (...args: Args) => string) {
+export function singleFlight<Args extends unknown[] = []>(
+    deduplicator: Deduplicator,
+    idGenerator: IdGenerator,
+    keyFor?: (...args: Args) => string,
+) {
     let methodId: string | undefined;
     const instanceIds = new WeakMap<object, string>();
 
@@ -9,7 +14,6 @@ export function singleFlight<Args extends unknown[] = []>(keyFor?: (...args: Arg
         _context: ClassMethodDecoratorContext<This, (this: This, ...args: Args) => Promise<Result>>,
     ) {
         return function (this: This, ...args: Args): Promise<Result> {
-            const idGenerator = resolve('idGenerator');
             methodId ??= idGenerator.generate();
 
             let instanceId = instanceIds.get(this);
@@ -19,7 +23,7 @@ export function singleFlight<Args extends unknown[] = []>(keyFor?: (...args: Arg
             }
 
             const key = JSON.stringify(['singleFlight', methodId, instanceId, keyFor?.(...args) ?? '']);
-            return resolve('deduplicator').run(key, () => method.apply(this, args));
+            return deduplicator.run(key, () => method.apply(this, args));
         };
     };
-};
+}

@@ -1,6 +1,7 @@
-import { resolve } from '@implementations/container';
+import type { Cache } from '@contracts/cache/Cache';
 
 export function cached<KeyArgs extends unknown[]>(
+    cache: Cache,
     keyOrKeyFor: string | ((...args: KeyArgs) => string),
     ttlMs?: number,
 ) {
@@ -13,7 +14,6 @@ export function cached<KeyArgs extends unknown[]>(
                 ? keyOrKeyFor
                 : keyOrKeyFor(...args);
 
-            const cache = resolve('cache');
             const cachedValue = await cache.get(key);
 
             if (cachedValue !== undefined) {

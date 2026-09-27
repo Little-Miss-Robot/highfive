@@ -1,7 +1,7 @@
 import type { Container, Dependencies } from '@contracts/container/Container';
 import type { ProviderContext, ServiceProvider } from '@contracts/container/ServiceProvider';
 
-export class InteropContainer<B extends Dependencies> implements Container<B> {
+export class DefaultContainer<B extends Dependencies> implements Container<B> {
     /**
      *
      * @private
@@ -68,14 +68,14 @@ export class InteropContainer<B extends Dependencies> implements Container<B> {
     >(
         provider: ServiceProvider<Provides, Requires>,
         ..._missing: B extends Requires ? [] : [error: 'Register required providers first']
-    ): InteropContainer<B & Provides> {
+    ): DefaultContainer<B & Provides> {
         provider.register({
             make: this.make.bind(this),
             bind: this.bind.bind(this),
             singleton: this.singleton.bind(this),
         } as unknown as ProviderContext<Provides, Requires>);
 
-        return this as unknown as InteropContainer<B & Provides>;
+        return this as unknown as DefaultContainer<B & Provides>;
     }
 
     /**

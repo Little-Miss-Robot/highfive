@@ -1,4 +1,4 @@
-import { resolve } from '@implementations/container';
+import type { Logger } from '@contracts/logger/Logger';
 
 function describeReceiver(receiver: unknown): string {
     if (typeof receiver === 'function') {
@@ -13,6 +13,7 @@ function describeReceiver(receiver: unknown): string {
 }
 
 export function log(
+    logger: Logger,
     formatResult: (value: unknown) => string = String,
     formatReceiver: (receiver: unknown) => string = describeReceiver,
 ) {
@@ -26,7 +27,7 @@ export function log(
         return async function (this: This, ...args: Args): Promise<Result> {
             const result = await method.apply(this, args);
 
-            resolve('logger').info(
+            logger.info(
                 `${formatReceiver(this)}.${String(context.name)} returned: ${formatResult(result)}`,
             );
 
