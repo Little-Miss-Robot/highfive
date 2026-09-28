@@ -81,7 +81,30 @@ The package ships ESM and CommonJS builds with TypeScript declarations.
 
 ## Contract reference
 
+Normative requirements for each contract are in [`specs/`](./specs). Those documents use the key words defined by [RFC 2119](https://www.rfc-editor.org/info/rfc2119/).
+
+- [Analytics](./specs/analytics.md)
+- [Cache](./specs/cache.md)
+- [Clock](./specs/clock.md)
+- [Config](./specs/config.md)
+- [Container and ServiceProvider](./specs/container.md)
+- [Tracer](./specs/tracer.md)
+- [EventBus](./specs/event-bus.md)
+- [Deduplicator](./specs/deduplicator.md)
+- [RetryPolicy](./specs/retry-policy.md)
+- [Timeout](./specs/timeout.md)
+- [Filesystem](./specs/filesystem.md)
+- [HttpAuth](./specs/http-auth.md)
+- [HttpClient](./specs/http-client.md)
+- [IdGenerator](./specs/id-generator.md)
+- [Logger](./specs/logger.md)
+- [UrlBuilder](./specs/url-builder.md)
+- [Notification and Notifier](./specs/notifier.md)
+- [Serializer](./specs/serializer.md)
+
 ### Analytics
+
+[Specification](./specs/analytics.md)
 
 ```ts
 type AnalyticsValue = string | number | boolean | null;
@@ -96,6 +119,8 @@ interface Analytics {
 `Logger`.
 
 ### Cache
+
+[Specification](./specs/cache.md)
 
 ```ts
 interface Cache {
@@ -131,6 +156,8 @@ const session = await cache.get('session');
 
 ### Clock
 
+[Specification](./specs/clock.md)
+
 ```ts
 interface Clock {
     now(): Date;
@@ -143,6 +170,8 @@ whose time starts at the Unix epoch and can be moved forward with
 
 ### Config
 
+[Specification](./specs/config.md)
+
 ```ts
 interface Config<Values extends object> {
     get<Key extends keyof Values>(key: Key): Values[Key];
@@ -154,6 +183,8 @@ implementation.
 
 ### Container and service providers
 
+[Specification](./specs/container.md)
+
 `Container<B>` binds factories, binds lazy singletons, registers providers, and
 resolves services with `make`. `ServiceProvider<Provides, Requires>` describes
 the services a provider adds and the services it needs.
@@ -163,6 +194,8 @@ providers in dependency order. Container usage is optional; all other
 implementations can be constructed directly.
 
 ### Tracing
+
+[Specification](./specs/tracer.md)
 
 ```ts
 interface Tracer {
@@ -174,6 +207,8 @@ interface Tracer {
 duration and success or failure through a `Logger`.
 
 ### Events
+
+[Specification](./specs/event-bus.md)
 
 ```ts
 interface EventBus<E extends object> {
@@ -207,6 +242,8 @@ unsubscribe();
 ```
 
 ### Execution
+
+Specifications: [Deduplicator](./specs/deduplicator.md), [RetryPolicy](./specs/retry-policy.md), [Timeout](./specs/timeout.md)
 
 ```ts
 interface Deduplicator {
@@ -271,6 +308,8 @@ stop arbitrary JavaScript work that ignores cancellation.
 
 ### Filesystem
 
+[Specification](./specs/filesystem.md)
+
 ```ts
 interface Filesystem {
     read(path: string): Promise<Uint8Array>;
@@ -285,6 +324,8 @@ Highfive defines this contract but does not include a filesystem
 implementation.
 
 ### HTTP
+
+Specifications: [HttpAuth](./specs/http-auth.md), [HttpClient](./specs/http-client.md)
 
 ```ts
 interface HttpAuth {
@@ -340,6 +381,8 @@ catch (error) {
 
 ### Identifiers
 
+[Specification](./specs/id-generator.md)
+
 ```ts
 interface IdGenerator {
     generate(): string;
@@ -349,6 +392,8 @@ interface IdGenerator {
 `CryptoIdGenerator` delegates to `globalThis.crypto.randomUUID()`.
 
 ### Logging
+
+[Specification](./specs/logger.md)
 
 ```ts
 enum LogLevel {
@@ -369,6 +414,8 @@ interface Logger {
 console method. `NothingLogger` implements `Logger` and discards every message.
 
 ### URLs
+
+[Specification](./specs/url-builder.md)
 
 ```ts
 interface UrlBuilder<Routes extends object> {
@@ -398,6 +445,8 @@ urls.make('profile', 'user-123');
 
 ### Notifications
 
+[Specification](./specs/notifier.md)
+
 ```ts
 type NotificationLevel = 'info' | 'success' | 'warning' | 'error';
 
@@ -418,6 +467,8 @@ keep a notification visible. Highfive defines these contracts but does not
 include a notifier implementation.
 
 ### Serializer
+
+[Specification](./specs/serializer.md)
 
 ```ts
 interface Serializer<Value, Serialized = string> {
