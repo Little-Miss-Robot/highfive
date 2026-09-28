@@ -1,12 +1,12 @@
-# Interop Core
+# Highfive
 
-[![npm version](https://img.shields.io/npm/v/%40littlemissrobot%2Finterop-core)](https://www.npmjs.com/package/@littlemissrobot/interop-core)
-[![CI](https://github.com/reinvanoyen/interop-draft/actions/workflows/main.yml/badge.svg)](https://github.com/reinvanoyen/interop-draft/actions/workflows/main.yml)
-[![license](https://img.shields.io/npm/l/%40littlemissrobot%2Finterop-core)](./package.json)
+[![npm version](https://img.shields.io/npm/v/%40littlemissrobot%2Fhighfive)](https://www.npmjs.com/package/@littlemissrobot/highfive)
+[![CI](https://github.com/Little-Miss-Robot/highfive/actions/workflows/main.yml/badge.svg)](https://github.com/Little-Miss-Robot/highfive/actions/workflows/main.yml)
+[![license](https://img.shields.io/npm/l/%40littlemissrobot%2Fhighfive)](./package.json)
 
 ## Contracts
 
-Interop Core is primarily a collection of small TypeScript contracts for
+Highfive is primarily a collection of small TypeScript contracts for
 application infrastructure. Application code can depend on these interfaces
 instead of a particular framework, vendor, or runtime implementation.
 
@@ -46,7 +46,7 @@ import type {
     Clock,
     IdGenerator,
     Logger,
-} from '@littlemissrobot/interop-core';
+} from '@littlemissrobot/highfive';
 
 export class JobService {
     constructor(
@@ -67,14 +67,14 @@ export class JobService {
 }
 ```
 
-Interop Core also includes implementations for most contracts. Decorators and
+Highfive also includes implementations for most contracts. Decorators and
 the dependency-injection container are optional conveniences, not requirements.
 Construct the implementations you need and pass them in.
 
 ## Installation
 
 ```sh
-npm install @littlemissrobot/interop-core
+npm install @littlemissrobot/highfive
 ```
 
 The package ships ESM and CommonJS builds with TypeScript declarations.
@@ -112,8 +112,8 @@ interface Cache {
 Included adapters:
 
 - `MemoryCache(clock)` stores values for the lifetime of the instance.
-- `LocalStorageCache(namespace, clock)` stores namespaced values in the
-  browser's `window.localStorage`.
+- `LocalStorageCache(namespace, clock)` stores values in the browser's
+  `window.localStorage`, under keys prefixed with `highfive:<namespace>:`.
 
 Both adapters expire entries lazily when they are read. A TTL must be a
 positive, finite number.
@@ -122,7 +122,7 @@ positive, finite number.
 import {
     MemoryCache,
     SystemClock,
-} from '@littlemissrobot/interop-core';
+} from '@littlemissrobot/highfive';
 
 const cache = new MemoryCache(new SystemClock());
 await cache.set('session', 'active', { ttlMs: 60_000 });
@@ -149,7 +149,7 @@ interface Config<Values extends object> {
 }
 ```
 
-Interop Core defines this contract but does not include a config
+Highfive defines this contract but does not include a config
 implementation.
 
 ### Container and service providers
@@ -190,7 +190,7 @@ interface EventBus<E extends object> {
 `on` returns an unsubscribe function. Listener errors propagate from `emit`.
 
 ```ts
-import { InMemoryEventBus } from '@littlemissrobot/interop-core';
+import { InMemoryEventBus } from '@littlemissrobot/highfive';
 
 interface AppEvents {
     signedIn: { userId: string };
@@ -250,7 +250,7 @@ import {
     DefaultRetryPolicy,
     DefaultTimeout,
     SingleFlightDeduplicator,
-} from '@littlemissrobot/interop-core';
+} from '@littlemissrobot/highfive';
 
 const retry = new DefaultRetryPolicy();
 const timeout = new DefaultTimeout();
@@ -281,7 +281,7 @@ interface Filesystem {
 }
 ```
 
-Interop Core defines this contract but does not include a filesystem
+Highfive defines this contract but does not include a filesystem
 implementation.
 
 ### HTTP
@@ -313,7 +313,7 @@ import {
     BearerHttpAuth,
     FetchHttpClient,
     HttpStatusError,
-} from '@littlemissrobot/interop-core';
+} from '@littlemissrobot/highfive';
 
 const auth = new BearerHttpAuth(signal =>
     tokenStore.getAccessToken({ signal }),
@@ -385,7 +385,7 @@ is the function's argument list, or an empty list for a string route.
 neither a string nor a function, or the function does not return a string.
 
 ```ts
-import { DefaultUrlBuilder } from '@littlemissrobot/interop-core';
+import { DefaultUrlBuilder } from '@littlemissrobot/highfive';
 
 const urls = new DefaultUrlBuilder({
     home: '/',
@@ -414,7 +414,7 @@ interface Notifier {
 ```
 
 Omit `durationMs` to use an adapter's default duration. Set it to `null` to
-keep a notification visible. Interop Core defines these contracts but does not
+keep a notification visible. Highfive defines these contracts but does not
 include a notifier implementation.
 
 ### Serializer
@@ -432,7 +432,7 @@ throw. Serialization throws a `TypeError` when `JSON.stringify` returns
 `undefined`.
 
 ```ts
-import { JsonSerializer } from '@littlemissrobot/interop-core';
+import { JsonSerializer } from '@littlemissrobot/highfive';
 
 interface User {
     name: string;
@@ -480,8 +480,8 @@ Reusable Vitest contract suites are exported from the package's
 - `testSerializerContract`
 
 ```ts
-import { MemoryCache } from '@littlemissrobot/interop-core';
-import { testCacheContract } from '@littlemissrobot/interop-core/testsuite';
+import { MemoryCache } from '@littlemissrobot/highfive';
+import { testCacheContract } from '@littlemissrobot/highfive/testsuite';
 
 let now = 0;
 const clock = {
@@ -512,7 +512,7 @@ import {
     clockProvider,
     DefaultContainer,
     loggerProvider,
-} from '@littlemissrobot/interop-core';
+} from '@littlemissrobot/highfive';
 
 const container = new DefaultContainer()
     .register(clockProvider)
@@ -545,11 +545,11 @@ on the container. Pass the extra bindings as the container's type argument so
 `singleton` accepts them:
 
 ```ts
-import type { EventBus } from '@littlemissrobot/interop-core';
+import type { EventBus } from '@littlemissrobot/highfive';
 import {
     DefaultContainer,
     InMemoryEventBus,
-} from '@littlemissrobot/interop-core';
+} from '@littlemissrobot/highfive';
 
 interface AppEvents {
     signedIn: { userId: string };
@@ -596,7 +596,7 @@ import {
     retry,
     SystemClock,
     timeout,
-} from '@littlemissrobot/interop-core';
+} from '@littlemissrobot/highfive';
 
 const cache = new MemoryCache(new SystemClock());
 const retryPolicy = new DefaultRetryPolicy();
@@ -638,8 +638,8 @@ APIs.
 ## Development
 
 ```sh
-git clone https://github.com/Little-Miss-Robot/interop-core.git
-cd interop-core
+git clone https://github.com/Little-Miss-Robot/highfive.git
+cd highfive
 npm install
 npm test
 npm run build

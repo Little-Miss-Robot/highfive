@@ -1,14 +1,14 @@
 {
-  "name": "@littlemissrobot/interop-core",
+  "name": "@littlemissrobot/highfive",
   "type": "module",
   "author": "Rein Van Oyen",
   "description": "",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Little-Miss-Robot/interop-core.git"
+    "url": "git+https://github.com/Little-Miss-Robot/highfive.git"
   },
-  "homepage": "https://github.com/Little-Miss-Robot/interop-core#readme",
+  "homepage": "https://github.com/Little-Miss-Robot/highfive#readme",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -38,7 +38,7 @@
   },
   "license": "ISC",
   "peerDependencies": {
-    "vitest": ">=2"
+    "vitest": ">=5"
   },
   "peerDependenciesMeta": {
     "vitest": {

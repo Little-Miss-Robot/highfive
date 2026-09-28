@@ -61,7 +61,7 @@ export class LocalStorageCache implements Cache {
     }
 
     private key(key: string): string {
-        return `interop:${this.namespace}:${key}`;
+        return `highfive:${this.namespace}:${key}`;
     }
 
     private isEntry(value: unknown): value is StoredEntry {
