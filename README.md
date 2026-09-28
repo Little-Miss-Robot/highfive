@@ -1,7 +1,7 @@
 # Interop Core
 
 [![npm version](https://img.shields.io/npm/v/%40littlemissrobot%2Finterop-core)](https://www.npmjs.com/package/@littlemissrobot/interop-core)
-[![CI](https://github.com/Little-Miss-Robot/interop-core/actions/workflows/main.yml/badge.svg)](https://github.com/Little-Miss-Robot/interop-core/actions/workflows/main.yml)
+[![CI](https://github.com/reinvanoyen/interop-draft/actions/workflows/main.yml/badge.svg)](https://github.com/reinvanoyen/interop-draft/actions/workflows/main.yml)
 [![license](https://img.shields.io/npm/l/%40littlemissrobot%2Finterop-core)](./package.json)
 
 ## Contracts
