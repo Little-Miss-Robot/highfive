@@ -1,8 +1,18 @@
 # Highfive
 
+## A contract-first TypeScript library for building applications with interchangeable services and shared conventions.
+
 [![npm version](https://img.shields.io/npm/v/%40littlemissrobot%2Fhighfive)](https://www.npmjs.com/package/@littlemissrobot/highfive)
 [![CI](https://github.com/Little-Miss-Robot/highfive/actions/workflows/main.yml/badge.svg)](https://github.com/Little-Miss-Robot/highfive/actions/workflows/main.yml)
 [![license](https://img.shields.io/npm/l/%40littlemissrobot%2Fhighfive)](./package.json)
+
+## Installation
+
+```sh
+npm install @littlemissrobot/highfive
+```
+
+The package ships ESM and CommonJS builds with TypeScript declarations.
 
 ## Contracts
 
@@ -10,9 +20,9 @@ Highfive is primarily a collection of small TypeScript contracts for
 application infrastructure. Application code can depend on these interfaces
 instead of a particular framework, vendor, or runtime implementation.
 
-The package provides:
+### The package provides:
 
-- **`Analytics`** — records a named event with optional scalar properties.
+- **`Analytics`** — records a named tracking event with optional data.
 - **`Cache`** — asynchronously reads, writes, and deletes string values, with
   optional time-to-live support.
 - **`Clock`** — returns the current `Date`, making time replaceable in tests.
@@ -38,46 +48,6 @@ The package provides:
   and their lifecycle.
 - **`Serializer<Value, Serialized>`** — converts a value to a serialized form
   and back.
-
-Use only the contracts your application needs:
-
-```ts
-import type {
-    Clock,
-    IdGenerator,
-    Logger,
-} from '@littlemissrobot/highfive';
-
-export class JobService {
-    constructor(
-        private readonly clock: Clock,
-        private readonly ids: IdGenerator,
-        private readonly logger: Logger,
-    ) {}
-
-    start() {
-        const job = {
-            id: this.ids.generate(),
-            startedAt: this.clock.now(),
-        };
-
-        this.logger.info(`Started job ${job.id}`);
-        return job;
-    }
-}
-```
-
-Highfive also includes implementations for most contracts. Decorators and
-the dependency-injection container are optional conveniences, not requirements.
-Construct the implementations you need and pass them in.
-
-## Installation
-
-```sh
-npm install @littlemissrobot/highfive
-```
-
-The package ships ESM and CommonJS builds with TypeScript declarations.
 
 ## Contract reference
 
@@ -548,7 +518,7 @@ testCacheContract(
 );
 ```
 
-The test suites require Vitest 2 or newer. Keep adapter-specific tests for
+The test suites require Vitest 5 or newer. Keep adapter-specific tests for
 behavior outside the shared contract.
 
 ## Optional: container and providers
@@ -576,17 +546,14 @@ await container.make('cache').set('ready', 'yes');
 
 Available providers are:
 
-- `identifiersProvider` → `idGenerator`: `CryptoIdGenerator`
-- `clockProvider` → `clock`: `SystemClock`
-- `loggerProvider` → `logger`: `ConsoleLogger` (requires `clockProvider`)
-- `diagnosticsProvider` → `tracer`: `LogTracer` (requires `loggerProvider`)
-- `executionProvider` → `retryPolicy`: `DefaultRetryPolicy`, `timeout`:
-  `DefaultTimeout`, and `deduplicator`: `SingleFlightDeduplicator`
-- `cacheProvider` → `cache`: `MemoryCache` (requires `clockProvider`)
-- `httpProvider` → `http`: `FetchHttpClient`, and `httpAuth`, which initially
-  resolves to `undefined`
-- `analyticsProvider` → `analytics`: `LoggerAnalytics` (requires
-  `loggerProvider`)
+- `identifiersProvider`
+- `clockProvider`
+- `loggerProvider`
+- `diagnosticsProvider`
+- `executionProvider`
+- `cacheProvider`
+- `httpProvider`
+- `analyticsProvider`
 
 `http` reads `httpAuth` when `http` is first resolved. Replace the `httpAuth`
 singleton before that resolution when requests need authentication.
