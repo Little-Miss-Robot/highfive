@@ -2,7 +2,7 @@
   "name": "@littlemissrobot/highfive",
   "type": "module",
   "author": "Rein Van Oyen",
-  "description": "",
+  "description": "A contract-first TypeScript library for building applications with interchangeable services and shared conventions.",
   "version": "0.1.0",
   "repository": {
     "type": "git",
