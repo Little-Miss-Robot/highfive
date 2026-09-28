@@ -37,7 +37,7 @@
     "demo": "tsx src/demo.ts",
     "test": "vitest run"
   },
-  "license": "ISC",
+  "license": "MIT",
   "peerDependencies": {
     "vitest": ">=5"
   },

@@ -647,4 +647,4 @@ npm run build
 
 ## License
 
-[ISC](./package.json) © Rein Van Oyen
+[MIT](./package.json) © Little Miss Robot
