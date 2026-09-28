@@ -16,6 +16,7 @@ The package provides:
 - **`Cache`** — asynchronously reads, writes, and deletes string values, with
   optional time-to-live support.
 - **`Clock`** — returns the current `Date`, making time replaceable in tests.
+- **`Config<Values>`** — reads a typed configuration value by key.
 - **`Container`** and **`ServiceProvider`** — describe typed dependency
   resolution and composable service registration.
 - **`Tracer`** — observes an asynchronous operation while preserving its result
@@ -26,13 +27,17 @@ The package provides:
   according to configurable retry rules.
 - **`Timeout`** — applies a deadline and supplies an `AbortSignal` to an
   asynchronous operation.
+- **`Filesystem`** — reads, writes, deletes, checks, and moves binary files.
 - **`HttpAuth`** — transforms an HTTP request before it is sent.
 - **`HttpClient`** — sends `GET`, `POST`, `PUT`, `PATCH`, and `DELETE` requests.
 - **`IdGenerator`** — generates identifiers that are unique for the
   application's lifetime.
 - **`Logger`** — writes info, warning, and error messages.
+- **`UrlBuilder<Routes>`** — builds a URL from a typed route table.
 - **`Notification`** and **`Notifier`** — describe user-facing notifications
   and their lifecycle.
+- **`Serializer<Value, Serialized>`** — converts a value to a serialized form
+  and back.
 
 Use only the contracts your application needs:
 
@@ -62,9 +67,9 @@ export class JobService {
 }
 ```
 
-Interop Core also includes implementations for most contracts. Decorators,
-facades, and the dependency-injection container are optional conveniences, not
-requirements.
+Interop Core also includes implementations for most contracts. Decorators and
+the dependency-injection container are optional conveniences, not requirements.
+Construct the implementations you need and pass them in.
 
 ## Installation
 
@@ -87,7 +92,8 @@ interface Analytics {
 }
 ```
 
-`LoggerAnalytics` is the included adapter. It writes events through a `Logger`.
+`LoggerAnalytics(logger)` is the included adapter. It writes events through a
+`Logger`.
 
 ### Cache
 
@@ -135,14 +141,26 @@ interface Clock {
 whose time starts at the Unix epoch and can be moved forward with
 `advance(durationMs)`.
 
+### Config
+
+```ts
+interface Config<Values extends object> {
+    get<Key extends keyof Values>(key: Key): Values[Key];
+}
+```
+
+Interop Core defines this contract but does not include a config
+implementation.
+
 ### Container and service providers
 
 `Container<B>` binds factories, binds lazy singletons, registers providers, and
 resolves services with `make`. `ServiceProvider<Provides, Requires>` describes
 the services a provider adds and the services it needs.
 
-`InteropContainer` is the included implementation. Container usage is
-optional; all other implementations can be constructed directly.
+`DefaultContainer` is the included implementation. Create one and register
+providers in dependency order. Container usage is optional; all other
+implementations can be constructed directly.
 
 ### Tracing
 
@@ -152,7 +170,7 @@ interface Tracer {
 }
 ```
 
-`LogTracer` measures an operation with `performance.now()` and logs its
+`LogTracer(logger)` measures an operation with `performance.now()` and logs its
 duration and success or failure through a `Logger`.
 
 ### Events
@@ -251,6 +269,21 @@ const response = await deduplicator.run('current-user', () =>
 The operation passed to `Timeout` should observe its signal. A timeout cannot
 stop arbitrary JavaScript work that ignores cancellation.
 
+### Filesystem
+
+```ts
+interface Filesystem {
+    read(path: string): Promise<Uint8Array>;
+    write(path: string, contents: Uint8Array): Promise<void>;
+    delete(path: string): Promise<void>;
+    exists(path: string): Promise<boolean>;
+    move(from: string, to: string): Promise<void>;
+}
+```
+
+Interop Core defines this contract but does not include a filesystem
+implementation.
+
 ### HTTP
 
 ```ts
@@ -267,12 +300,13 @@ interface HttpClient {
 }
 ```
 
-`FetchHttpClient` uses the global `fetch`. It resolves with the native
+`FetchHttpClient(auth?)` uses the global `fetch`. It resolves with the native
 `Response` for successful responses and rejects with `HttpStatusError` for
-non-2xx responses.
+non-2xx responses. `HttpStatusError` exposes the response `status`.
 
-`BearerHttpAuth` obtains a token asynchronously and adds an
-`Authorization: Bearer <token>` header.
+`BearerHttpAuth(getToken)` obtains a token asynchronously and adds an
+`Authorization: Bearer <token>` header. `getToken` receives the request's
+`AbortSignal`.
 
 ```ts
 import {
@@ -332,7 +366,35 @@ interface Logger {
 ```
 
 `ConsoleLogger(clock)` writes timestamped messages to the corresponding
-console method.
+console method. `NothingLogger` implements `Logger` and discards every message.
+
+### URLs
+
+```ts
+interface UrlBuilder<Routes extends object> {
+    make<Key extends keyof Routes & string>(
+        key: Key,
+        ...args: RouteArgs<Routes[Key]>
+    ): string;
+}
+```
+
+A route is either a string or a function that returns a string. `RouteArgs`
+is the function's argument list, or an empty list for a string route.
+`DefaultUrlBuilder(routes)` throws if the key is missing, the definition is
+neither a string nor a function, or the function does not return a string.
+
+```ts
+import { DefaultUrlBuilder } from '@littlemissrobot/interop-core';
+
+const urls = new DefaultUrlBuilder({
+    home: '/',
+    profile: (id: string) => `/users/${id}`,
+});
+
+urls.make('home');
+urls.make('profile', 'user-123');
+```
 
 ### Notifications
 
@@ -355,16 +417,67 @@ Omit `durationMs` to use an adapter's default duration. Set it to `null` to
 keep a notification visible. Interop Core defines these contracts but does not
 include a notifier implementation.
 
+### Serializer
+
+```ts
+interface Serializer<Value, Serialized = string> {
+    serialize(value: Value): Serialized;
+    deserialize(serialized: Serialized): Value;
+}
+```
+
+`JsonSerializer(decode)` serializes with `JSON.stringify` and deserializes with
+`JSON.parse`. `decode` receives the parsed value and must return `Value` or
+throw. Serialization throws a `TypeError` when `JSON.stringify` returns
+`undefined`.
+
+```ts
+import { JsonSerializer } from '@littlemissrobot/interop-core';
+
+interface User {
+    name: string;
+}
+
+const users = new JsonSerializer<User>((value) => {
+    if (
+        typeof value !== 'object'
+        || value === null
+        || !('name' in value)
+        || typeof value.name !== 'string'
+    ) {
+        throw new TypeError('Expected a user');
+    }
+
+    return { name: value.name };
+});
+
+const json = users.serialize({ name: 'Ada' });
+const user = users.deserialize(json);
+```
+
 ## Testing custom implementations
 
 Reusable Vitest contract suites are exported from the package's
 `/testsuite` entry point:
 
+- `testAnalyticsContract`
 - `testCacheContract`
-- `testIdGeneratorContract`
+- `testClockContract`
+- `testConfigContract`
+- `testContainerContract`
+- `testTracerContract`
+- `testEventBusContract`
+- `testDeduplicatorContract`
 - `testRetryPolicyContract`
 - `testTimeoutContract`
-- `testDeduplicatorContract`
+- `testFilesystemContract`
+- `testHttpAuthContract`
+- `testHttpClientContract`
+- `testIdGeneratorContract`
+- `testLoggerContract`
+- `testUrlBuilderContract`
+- `testNotifierContract`
+- `testSerializerContract`
 
 ```ts
 import { MemoryCache } from '@littlemissrobot/interop-core';
@@ -389,18 +502,19 @@ behavior outside the shared contract.
 
 ## Optional: container and providers
 
-`createContainer()` creates an empty typed container. Register only the
-providers you need, in dependency order:
+`new DefaultContainer()` creates an empty typed container. Register only the
+providers you need, in dependency order. Registering a provider before the
+services it requires is a type error.
 
 ```ts
 import {
     cacheProvider,
     clockProvider,
-    createContainer,
+    DefaultContainer,
     loggerProvider,
 } from '@littlemissrobot/interop-core';
 
-const container = createContainer()
+const container = new DefaultContainer()
     .register(clockProvider)
     .register(loggerProvider)
     .register(cacheProvider);
@@ -411,93 +525,90 @@ await container.make('cache').set('ready', 'yes');
 
 Available providers are:
 
-- `identifiersProvider` → `CryptoIdGenerator`
-- `clockProvider` → `SystemClock`
-- `loggerProvider` → `ConsoleLogger` (requires `clockProvider`)
-- `diagnosticsProvider` → `LogTracer` (requires `loggerProvider`)
-- `executionProvider` → `DefaultRetryPolicy`, `DefaultTimeout`, and
-  `SingleFlightDeduplicator`
-- `cacheProvider` → `MemoryCache` (requires `clockProvider`)
-- `httpProvider` → `FetchHttpClient` and an `httpAuth` binding that initially
+- `identifiersProvider` → `idGenerator`: `CryptoIdGenerator`
+- `clockProvider` → `clock`: `SystemClock`
+- `loggerProvider` → `logger`: `ConsoleLogger` (requires `clockProvider`)
+- `diagnosticsProvider` → `tracer`: `LogTracer` (requires `loggerProvider`)
+- `executionProvider` → `retryPolicy`: `DefaultRetryPolicy`, `timeout`:
+  `DefaultTimeout`, and `deduplicator`: `SingleFlightDeduplicator`
+- `cacheProvider` → `cache`: `MemoryCache` (requires `clockProvider`)
+- `httpProvider` → `http`: `FetchHttpClient`, and `httpAuth`, which initially
   resolves to `undefined`
-- `analyticsProvider` → `LoggerAnalytics` (requires `loggerProvider`)
-- `eventsProvider<E>()` → `InMemoryEventBus<E>`
+- `analyticsProvider` → `analytics`: `LoggerAnalytics` (requires
+  `loggerProvider`)
 
-Use `bind` for a new instance on every resolution and `singleton` for one lazy
-instance. Rebinding a service invalidates its cached singleton.
+`http` reads `httpAuth` when `http` is first resolved. Replace the `httpAuth`
+singleton before that resolution when requests need authentication.
 
-## Optional: facades
-
-Facades resolve services from an active container. Configure one once with
-`useContainer` before calling a facade:
+`InMemoryEventBus` has no provider. Bind it, or any other application service,
+on the container. Pass the extra bindings as the container's type argument so
+`singleton` accepts them:
 
 ```ts
+import type { EventBus } from '@littlemissrobot/interop-core';
 import {
-    clock,
-    clockProvider,
-    createContainer,
-    id,
-    identifiersProvider,
-    useContainer,
+    DefaultContainer,
+    InMemoryEventBus,
 } from '@littlemissrobot/interop-core';
 
-useContainer(
-    createContainer()
-        .register(identifiersProvider)
-        .register(clockProvider),
-);
+interface AppEvents {
+    signedIn: { userId: string };
+}
 
-const createdAt = clock().now();
-const identifier = id().generate();
+const container = new DefaultContainer<{
+    events: () => EventBus<AppEvents>;
+}>().singleton('events', () => new InMemoryEventBus<AppEvents>());
 ```
 
-The exported facades are `analytics()`, `cache()`, `clock()`, `http()`, `id()`,
-and `logger()`. Calling one before `useContainer(...)` throws
-`Interop has not been configured`.
+Use `bind` for a new instance on every resolution and `singleton` for one lazy
+instance. The first resolution of a singleton supplies the arguments that
+create it; later resolutions return that instance. Rebinding a service
+invalidates its cached singleton.
 
 ## Optional: decorators
 
 The decorators use TypeScript's standard decorator proposal and support
-asynchronous methods. Except for `emit`, they resolve their dependencies from
-the active container.
+asynchronous methods. Each decorator receives the dependency it calls. Pass
+that dependency when the class is defined.
 
-- `@cached(key, ttlMs?)` caches a fulfilled result as JSON.
-- `@retry(options?)` applies the active `RetryPolicy`.
-- `@timeout(durationMs)` applies the active `Timeout`.
-- `@singleFlight(keyFor?)` coalesces concurrent calls to the same method and
-  instance.
-- `@trace(name?)` uses the active `Tracer`.
-- `@log(formatResult?, formatReceiver?)` logs fulfilled results.
-- `@emit(eventBus, event)` emits fulfilled results to the supplied bus.
+- `@cached(cache, key, ttlMs?)` caches a fulfilled result as JSON. `key` may
+  be a string or a function of the method arguments. A TTL must be a positive,
+  finite number when the cache enforces that rule.
+- `@retry(retryPolicy, options?)` applies the given `RetryPolicy`.
+- `@timeout(timeout, durationMs)` applies the given `Timeout`.
+- `@singleFlight(deduplicator, idGenerator, keyFor?)` coalesces concurrent
+  calls to the same method and instance. `keyFor` can add the method arguments
+  to that identity.
+- `@trace(tracer, name?)` uses the given `Tracer`. The name defaults to the
+  method name.
+- `@log(logger, formatResult?, formatReceiver?)` logs fulfilled results through
+  the given `Logger`.
+- `@emit(eventBus, event)` emits fulfilled results to the supplied bus. The
+  method's result type must match the event payload.
 
 ```ts
 import {
     cached,
-    cacheProvider,
-    clockProvider,
-    createContainer,
-    executionProvider,
-    http,
-    httpProvider,
+    DefaultRetryPolicy,
+    DefaultTimeout,
+    FetchHttpClient,
+    MemoryCache,
     retry,
+    SystemClock,
     timeout,
-    useContainer,
 } from '@littlemissrobot/interop-core';
 
-useContainer(
-    createContainer()
-        .register(clockProvider)
-        .register(executionProvider)
-        .register(cacheProvider)
-        .register(httpProvider),
-);
+const cache = new MemoryCache(new SystemClock());
+const retryPolicy = new DefaultRetryPolicy();
+const deadlines = new DefaultTimeout();
+const http = new FetchHttpClient();
 
 class UserService {
-    @cached((id: string) => `user:${id}`, 60_000)
-    @retry({ attempts: 3, delayMs: 250 })
-    @timeout(5_000)
+    @cached(cache, (id: string) => `user:${id}`, 60_000)
+    @retry(retryPolicy, { attempts: 3, delayMs: 250 })
+    @timeout(deadlines, 5_000)
     async find(id: string) {
-        const response = await http().get(`/api/users/${id}`);
+        const response = await http.get(`/api/users/${id}`);
         return response.json();
     }
 }
@@ -507,7 +618,8 @@ Decorators are applied from the method outward. Here, `timeout` wraps the
 method first, then `retry`, then `cached`. Ordering changes behavior.
 `@timeout` enforces a deadline but cannot pass its generated signal into the
 decorated method; use the `Timeout` contract directly when the operation must
-receive that signal.
+receive that signal. `@cached` stores `JSON.stringify` output and returns
+`JSON.parse` output as the method's result type.
 
 ## Runtime requirements
 
