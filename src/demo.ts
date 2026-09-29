@@ -50,11 +50,14 @@ const validator: Validator<Dadjoke> = {
     },
 };
 
+// Events
+interface Events {
+    received: Dadjoke
+}
+
 // Container & dependencies
 const container = new DefaultContainer<{
-    dadjokeEvents: () => EventBus<{
-        received: Dadjoke
-    }>
+    dadjokeEvents: () => EventBus<Events>
 }>()
     .register(clockProvider)
     .register(httpProvider)

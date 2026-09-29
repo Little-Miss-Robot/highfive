@@ -4,6 +4,7 @@
       "@contracts/*": ["./src/contracts/*"],
       "@implementations/*": ["./src/implementations/*"],
       "@errors/*": ["./src/errors/*"],
+      "@helpers/*": ["./src/helpers/*"],
       "@testsuite/*": ["./src/testsuite/*"],
       "@decorators/*": ["./src/decorators/*"],
       "@fakes/*": ["./src/fakes/*"],
