@@ -35,7 +35,7 @@ function isDadjoke(value: unknown): value is Dadjoke {
 }
 
 // Simple validator
-class DadjokeValidator implements Validator<Dadjoke> {
+const validator: Validator<Dadjoke> = {
     validate(value: unknown): Dadjoke {
         if (!isDadjoke(value)) {
             throw new ValidationError([
@@ -47,12 +47,11 @@ class DadjokeValidator implements Validator<Dadjoke> {
         }
 
         return value;
-    }
-}
+    },
+};
 
 // Container & dependencies
 const container = new DefaultContainer<{
-    dadjokeValidator: () => DadjokeValidator
     dadjokeEvents: () => EventBus<{
         received: Dadjoke
     }>
@@ -79,7 +78,7 @@ class DadjokeService {
     @log(logger())
     @emit(dadjokeEvents(), 'received')
     @cached(cache(), 'dadjoke', 4000)
-    @validate(new DadjokeValidator())
+    @validate(validator)
     @singleFlight(deduplicator(), idGenerator())
     static async get(): Promise<Dadjoke> {
         const response = await http().get('https://icanhazdadjoke.com/', {

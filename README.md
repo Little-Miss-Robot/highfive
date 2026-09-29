@@ -48,6 +48,8 @@ instead of a particular framework, vendor, or runtime implementation.
   and their lifecycle.
 - **`Serializer<Value, Serialized>`** — converts a value to a serialized form
   and back.
+- **`Validator<T>`** — checks an unknown value and returns a typed result, or
+  throws when the value is rejected.
 
 ## Contract reference
 
@@ -71,6 +73,7 @@ Normative requirements for each contract are in [`specs/`](./specs). Those docum
 - [UrlBuilder](./specs/url-builder.md)
 - [Notification and Notifier](./specs/notifier.md)
 - [Serializer](./specs/serializer.md)
+- [Validator](./specs/validator.md)
 
 ### Analytics
 
@@ -476,6 +479,54 @@ const json = users.serialize({ name: 'Ada' });
 const user = users.deserialize(json);
 ```
 
+### Validator
+
+[Specification](./specs/validator.md)
+
+```ts
+interface ValidationIssue {
+    readonly path: readonly (string | number)[];
+    readonly message: string;
+}
+
+interface Validator<T> {
+    validate(value: unknown): T;
+}
+```
+
+Highfive defines this contract but does not include a validator
+implementation. A rejected value throws an `Error` named `ValidationError`.
+`ValidationError` is the included error for that shape. `issues` lists what
+was rejected. An empty `path` applies to the whole value. A string addresses
+an object property, and a number addresses an array index.
+
+```ts
+import type { Validator } from '@littlemissrobot/highfive';
+import { ValidationError } from '@littlemissrobot/highfive';
+
+interface User {
+    name: string;
+}
+
+class UserValidator implements Validator<User> {
+    validate(value: unknown): User {
+        if (
+            typeof value !== 'object'
+            || value === null
+            || !('name' in value)
+            || typeof value.name !== 'string'
+            || value.name === ''
+        ) {
+            throw new ValidationError([
+                { path: ['name'], message: 'Expected a non-empty string' },
+            ]);
+        }
+
+        return { name: value.name };
+    }
+}
+```
+
 ## Testing custom implementations
 
 Reusable Vitest contract suites are exported from the package's
@@ -499,6 +550,7 @@ Reusable Vitest contract suites are exported from the package's
 - `testUrlBuilderContract`
 - `testNotifierContract`
 - `testSerializerContract`
+- `testValidatorContract`
 
 ```ts
 import { MemoryCache } from '@littlemissrobot/highfive';
