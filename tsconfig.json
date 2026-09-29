@@ -5,7 +5,6 @@
       "@implementations/*": ["./src/implementations/*"],
       "@errors/*": ["./src/errors/*"],
       "@testsuite/*": ["./src/testsuite/*"],
-      "@facades/*": ["./src/facades/*"],
       "@decorators/*": ["./src/decorators/*"],
       "@fakes/*": ["./src/fakes/*"],
     },
