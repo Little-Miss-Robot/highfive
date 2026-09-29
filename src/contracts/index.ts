@@ -18,3 +18,5 @@ export * from './navigation/UrlBuilder';
 export * from './notifications/Notification';
 export * from './notifications/Notifier';
 export * from './serializer/Serializer';
+export * from './validation/ValidationIssue';
+export * from './validation/Validator';

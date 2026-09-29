@@ -2,6 +2,8 @@ import type { Container, Dependencies } from '@contracts/container/Container';
 import type { ProviderContext, ServiceProvider } from '@contracts/container/ServiceProvider';
 
 export class DefaultContainer<B extends Dependencies> implements Container<B> {
+    declare readonly dependencyTypes: B;
+
     /**
      *
      * @private

@@ -8,7 +8,7 @@
       "@decorators/*": ["./src/decorators/*"],
       "@fakes/*": ["./src/fakes/*"],
     },
-    "lib": ["ES6", "dom", "dom.iterable"],
+    "lib": ["es2022", "dom", "dom.iterable"],
     "strict": true,
     "noImplicitAny": false,
     "noEmitOnError": true,
@@ -16,7 +16,7 @@
     "sourceMap": true,
     "module": "esnext",
     "moduleResolution": "Bundler",
-    "target": "es2017",
+    "target": "es2022",
     "outDir": "dist",
   },
   "include": [

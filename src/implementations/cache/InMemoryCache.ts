@@ -6,7 +6,7 @@ interface Entry {
     expiresAt: number | null
 }
 
-export class MemoryCache implements Cache {
+export class InMemoryCache implements Cache {
     private readonly clock: Clock;
     private readonly entries = new Map<string, Entry>();
 
