@@ -4,7 +4,7 @@
 
 [![npm version](https://img.shields.io/npm/v/%40littlemissrobot%2Fhighfive)](https://www.npmjs.com/package/@littlemissrobot/highfive)
 [![CI](https://github.com/Little-Miss-Robot/highfive/actions/workflows/main.yml/badge.svg)](https://github.com/Little-Miss-Robot/highfive/actions/workflows/main.yml)
-[![license](https://img.shields.io/npm/l/%40littlemissrobot%2Fhighfive)](./package.json)
+[![license](https://img.shields.io/npm/l/%40littlemissrobot%2Fhighfive)](./LICENSE.md)
 
 ## Installation
 
@@ -109,7 +109,7 @@ interface Cache {
 
 Included adapters:
 
-- `MemoryCache(clock)` stores values for the lifetime of the instance.
+- `InMemoryCache(clock)` stores values for the lifetime of the instance.
 - `LocalStorageCache(namespace, clock)` stores values in the browser's
   `window.localStorage`, under keys prefixed with `highfive:<namespace>:`.
 
@@ -118,11 +118,11 @@ positive, finite number.
 
 ```ts
 import {
-    MemoryCache,
+    InMemoryCache,
     SystemClock,
 } from '@littlemissrobot/highfive';
 
-const cache = new MemoryCache(new SystemClock());
+const cache = new InMemoryCache(new SystemClock());
 await cache.set('session', 'active', { ttlMs: 60_000 });
 const session = await cache.get('session');
 ```
@@ -553,7 +553,7 @@ Reusable Vitest contract suites are exported from the package's
 - `testValidatorContract`
 
 ```ts
-import { MemoryCache } from '@littlemissrobot/highfive';
+import { InMemoryCache } from '@littlemissrobot/highfive';
 import { testCacheContract } from '@littlemissrobot/highfive/testsuite';
 
 let now = 0;
@@ -562,8 +562,8 @@ const clock = {
 };
 
 testCacheContract(
-    'MemoryCache',
-    () => new MemoryCache(clock),
+    'InMemoryCache',
+    () => new InMemoryCache(clock),
     (durationMs) => {
         now += durationMs;
     },
@@ -655,6 +655,8 @@ that dependency when the class is defined.
   the given `Logger`.
 - `@emit(eventBus, event)` emits fulfilled results to the supplied bus. The
   method's result type must match the event payload.
+- `@validate(validator)` checks a fulfilled result with the given `Validator`.
+  The method's result type must match the validator's result type.
 
 ```ts
 import {
@@ -662,13 +664,13 @@ import {
     DefaultRetryPolicy,
     DefaultTimeout,
     FetchHttpClient,
-    MemoryCache,
+    InMemoryCache,
     retry,
     SystemClock,
     timeout,
 } from '@littlemissrobot/highfive';
 
-const cache = new MemoryCache(new SystemClock());
+const cache = new InMemoryCache(new SystemClock());
 const retryPolicy = new DefaultRetryPolicy();
 const deadlines = new DefaultTimeout();
 const http = new FetchHttpClient();
@@ -717,4 +719,4 @@ npm run build
 
 ## License
 
-[MIT](./package.json) © Little Miss Robot
+[MIT](./LICENSE.md) © Little Miss Robot
