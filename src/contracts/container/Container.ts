@@ -3,6 +3,12 @@ import type { ServiceProvider } from './ServiceProvider';
 export type Dependencies = Record<string, (...args: any[]) => any>;
 
 export interface Container<B extends Dependencies> {
+    /**
+     * Binding map, present so callers can infer `B`.
+     * Implementations do not assign this property.
+     */
+    readonly dependencyTypes: B
+
     bind: <K extends keyof B>(name: K, factory: B[K]) => this
 
     singleton: <K extends keyof B>(name: K, factory: B[K]) => this

@@ -8,13 +8,13 @@ import { validate } from '@decorators/validate';
 import { ValidationError } from '@errors/ValidationError';
 import { cacheProvider } from '@implementations/cache/provider';
 import { clockProvider } from '@implementations/clock/provider';
-import { createFacades } from '@implementations/container/createFacades';
 import { DefaultContainer } from '@implementations/container/DefaultContainer';
 import { InMemoryEventBus } from '@implementations/events/InMemoryEventBus';
 import { executionProvider } from '@implementations/execution/provider';
 import { httpProvider } from '@implementations/http/provider';
 import { identifiersProvider } from '@implementations/identifiers/provider';
 import { loggerProvider } from '@implementations/logger/provider';
+import { createFacades } from './helpers/createFacades';
 
 // Simple domain model
 interface Dadjoke {

@@ -159,8 +159,10 @@ implementation.
 [Specification](./specs/container.md)
 
 `Container<B>` binds factories, binds lazy singletons, registers providers, and
-resolves services with `make`. `ServiceProvider<Provides, Requires>` describes
-the services a provider adds and the services it needs.
+resolves services with `make`. Its type includes `dependencyTypes`, the binding
+map. Implementations declare that property and do not assign it. Callers do
+not read it. `ServiceProvider<Provides, Requires>` describes the services a
+provider adds and the services it needs.
 
 `DefaultContainer` is the included implementation. Create one and register
 providers in dependency order. Container usage is optional; all other

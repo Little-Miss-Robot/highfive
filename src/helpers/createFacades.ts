@@ -1,29 +1,17 @@
-type Factory = (...args: any[]) => any;
+import type { Container, Dependencies } from '@contracts/container/Container';
 
-interface ContainerLike<
-    D extends { [K in keyof D]: Factory },
-> {
-    readonly dependencyTypes: D
-
-    make: <K extends keyof D>(
-        name: K,
-        ...args: Parameters<D[K]>
-    ) => ReturnType<D[K]>
-}
-
-type Facades<D> = {
-    [K in keyof D]: D[K] extends Factory
-        ? (...args: Parameters<D[K]>) => ReturnType<D[K]>
-        : never;
+export type Facades<B extends Dependencies> = {
+    [K in keyof B]: (...args: Parameters<B[K]>) => ReturnType<B[K]>
 };
 
-export function createFacades<
-    D extends { [K in keyof D]: Factory },
->(container: ContainerLike<D>): Facades<D> {
-    const facades = Object.create(null) as Facades<D>;
+export function createFacades<B extends Dependencies>(
+    container: Container<B>,
+): Facades<B> {
+    const facades = Object.create(null) as Facades<B>;
 
     return new Proxy(facades, {
         get(target, key) {
+            // An awaited facade object must not be treated as a promise.
             if (typeof key !== 'string' || key === 'then') {
                 return undefined;
             }
@@ -32,6 +20,7 @@ export function createFacades<
                 Object.defineProperty(target, key, {
                     value: (...args: unknown[]) => {
                         const make = container.make as (
+                            this: Container<B>,
                             name: string,
                             ...args: unknown[]
                         ) => unknown;

@@ -10,6 +10,8 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **
 type Dependencies = Record<string, (...args: any[]) => any>;
 
 interface Container<B extends Dependencies> {
+    readonly dependencyTypes: B;
+
     bind<K extends keyof B>(name: K, factory: B[K]): this;
 
     singleton<K extends keyof B>(name: K, factory: B[K]): this;
@@ -58,6 +60,8 @@ interface ServiceProvider<
 }
 ```
 
+`dependencyTypes` carries the binding map for type inference. An implementation **MUST** include this property in its type and **MUST NOT** be required to assign it. Callers **MUST NOT** read it at runtime.
+
 ## Binding
 
 1. `bind` and `singleton` **MUST** return the same container instance they were called on.
@@ -87,4 +91,4 @@ This specification does not require a particular result when `make` is called fo
 
 ## Conformance
 
-An implementation conforms to this specification when it satisfies the requirements above. `testContainerContract` checks the binding, singleton, and provider requirements. Requirement 5 of Providers is enforced by the type of `register`.
+An implementation conforms to this specification when it satisfies the requirements above. `testContainerContract` checks the binding, singleton, and provider requirements. Requirement 5 of Providers and the `dependencyTypes` property are enforced by the type of `Container`.
