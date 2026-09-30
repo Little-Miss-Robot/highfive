@@ -558,37 +558,56 @@ interface Validator<T> {
 }
 ```
 
-Highfive defines this contract but does not include a validator
-implementation. A rejected value throws an `Error` named `ValidationError`.
+A rejected value throws an `Error` named `ValidationError`.
 `ValidationError` is the included error for that shape. `issues` lists what
 was rejected. An empty `path` applies to the whole value. A string addresses
-an object property, and a number addresses an array index.
+an object property, and a number addresses an array index. A custom adapter
+implements `Validator<T>` and throws `ValidationError` when it rejects a
+value.
+
+Included adapters:
+
+- `StringValidator` accepts a string. `minLength` and `maxLength` are
+  inclusive. Length counts UTF-16 code units. `nonEmpty` rejects `''`.
+- `NumberValidator` accepts a finite number. `min` and `max` are inclusive.
+- `IntegerValidator` accepts a safe integer. `min` and `max` are inclusive.
+- `BooleanValidator` accepts `true` or `false`.
+- `EmailValidator` accepts an address with one `@`, an ASCII local part, and
+  a domain of at least two dot-separated ASCII labels. The final label is at
+  least two characters.
+- `URLValidator` accepts a string that the `URL` constructor can parse, and
+  returns that string.
+- `DateValidator` accepts a valid `Date`, or an ISO 8601 string, and returns
+  a `Date`. `YYYY-MM-DD` is midnight UTC. A date-time uses `T` and a `Z` or
+  `±HH:mm` offset.
+- `ArrayValidator` validates each item with another validator. A rejected
+  item keeps its message, prefixed with the index.
+- `ObjectValidator` validates each declared field. A missing field is passed
+  as `undefined`. Unknown fields are omitted. A rejected field keeps its
+  message, prefixed with the field name.
+- `OptionalValidator` accepts `undefined`, or a value accepted by another
+  validator.
+- `OneOfValidator` accepts a value that matches an allowed value with
+  `Object.is`.
 
 ```ts
-import type { Validator } from '@littlemissrobot/highfive';
-import { ValidationError } from '@littlemissrobot/highfive';
+import {
+    EmailValidator,
+    ObjectValidator,
+    OptionalValidator,
+    StringValidator,
+} from '@littlemissrobot/highfive';
 
-interface User {
-    name: string;
-}
+const user = new ObjectValidator({
+    name: new StringValidator({ nonEmpty: true }),
+    email: new EmailValidator(),
+    nickname: new OptionalValidator(new StringValidator()),
+});
 
-class UserValidator implements Validator<User> {
-    validate(value: unknown): User {
-        if (
-            typeof value !== 'object'
-            || value === null
-            || !('name' in value)
-            || typeof value.name !== 'string'
-            || value.name === ''
-        ) {
-            throw new ValidationError([
-                { path: ['name'], message: 'Expected a non-empty string' },
-            ]);
-        }
-
-        return { name: value.name };
-    }
-}
+user.validate({
+    name: 'Ada',
+    email: 'ada@example.com',
+});
 ```
 
 ## Testing custom implementations
