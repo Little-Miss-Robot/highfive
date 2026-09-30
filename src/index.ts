@@ -10,6 +10,7 @@ export {
     withSingleFlight,
     withTimeout,
     withTrace,
+    withTransform,
     withValidate,
 } from '@helpers/index';
 export * from '@implementations/index';

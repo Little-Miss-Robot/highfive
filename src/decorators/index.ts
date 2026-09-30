@@ -5,4 +5,5 @@ export * from './retry';
 export * from './singleFlight';
 export * from './timeout';
 export * from './trace';
+export * from './transform';
 export * from './validate';

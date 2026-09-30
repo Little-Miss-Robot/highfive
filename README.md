@@ -52,6 +52,8 @@ instead of a particular framework, vendor, or runtime implementation.
   preserves.
 - **`Validator<T>`** — checks an unknown value and returns a typed result, or
   throws when the value is rejected.
+- **`Transformer<In, Out>`** — maps a value of type `In` to a value of type
+  `Out`.
 
 ## Contract reference
 
@@ -77,6 +79,7 @@ Normative requirements for each contract are in [`specs/`](./specs). Those docum
 - [Notification and Notifier](./specs/notifier.md)
 - [Serializer, SerializationCodec, and CodecRegistry](./specs/serializer.md)
 - [Validator](./specs/validator.md)
+- [Transformer](./specs/transformer.md)
 
 ### Analytics
 
@@ -610,6 +613,38 @@ user.validate({
 });
 ```
 
+### Transformer
+
+[Specification](./specs/transformer.md)
+
+```ts
+interface Transformer<In, Out> {
+    transform(value: In): Out;
+}
+```
+
+`transform` maps a value of type `In` to the `Out` defined for that input. The
+result may be the same reference, a copy, or a value with a different shape.
+The same input produces a deeply equal result on a later call. A value that
+cannot be represented throws, and the implementation chooses the exception.
+There is no included adapter.
+
+```ts
+interface ApiUser {
+    user_id: string;
+}
+
+interface User {
+    id: string;
+}
+
+const toUser: Transformer<ApiUser, User> = {
+    transform(api) {
+        return { id: api.user_id };
+    },
+};
+```
+
 ## Testing custom implementations
 
 Reusable Vitest contract suites are exported from the package's
@@ -637,6 +672,7 @@ Reusable Vitest contract suites are exported from the package's
 - `testSerializationCodecContract`
 - `testCodecRegistryContract`
 - `testValidatorContract`
+- `testTransformerContract`
 
 ```ts
 import { InMemoryCache } from '@littlemissrobot/highfive';
@@ -744,6 +780,9 @@ that dependency when the class is defined.
   method's result type must match the event payload.
 - `@validate(validator)` checks a fulfilled result with the given `Validator`.
   The method's result type must match the validator's result type.
+- `@transform(transformer)` maps a fulfilled result with the given
+  `Transformer`. The method's result type must match the transformer's input
+  type.
 
 ```ts
 import {
@@ -793,6 +832,7 @@ operation:
   defaults to the function's name.
 - `withEmit(eventBus, event)`
 - `withValidate(validator)`
+- `withTransform(transformer)`
 
 Using the cache, retry policy, timeout, and HTTP client from the example above:
 

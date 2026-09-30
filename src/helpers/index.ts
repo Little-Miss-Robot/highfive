@@ -7,4 +7,5 @@ export * from './withRetry';
 export * from './withSingleFlight';
 export * from './withTimeout';
 export * from './withTrace';
+export * from './withTransform';
 export * from './withValidate';

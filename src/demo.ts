@@ -57,6 +57,11 @@ const container = new DefaultContainer<{
 
 const { clock, http, logger, cache, dadjokeEvents, deduplicator, idGenerator, serializer } = createFacades(container);
 
+// Events
+dadjokeEvents().on('received', (dadjoke) => {
+    logger().info(`Dadjoke received with id ${dadjoke.id}`);
+});
+
 const apiDadjokeValidator = new ObjectValidator({
     id: new StringValidator({ nonEmpty: true }),
     joke: new StringValidator({ nonEmpty: true }),
@@ -84,11 +89,6 @@ const toDadjoke: Transformer<ApiDadjoke, Dadjoke> = {
         };
     },
 };
-
-// Events
-dadjokeEvents().on('received', (dadjoke) => {
-    logger().info(`Dadjoke received with id ${dadjoke.id}`);
-});
 
 class DadjokeService {
     @log(logger())

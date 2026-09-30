@@ -17,4 +17,5 @@ export * from './logger/testLoggerContract';
 export * from './navigation/testUrlBuilderContract';
 export * from './notifications/testNotifierContract';
 export * from './serializer/testSerializerContract';
+export * from './transformer/testTransformerContract';
 export * from './validation/testValidatorContract';
