@@ -1,4 +1,5 @@
 export * from './createFacades';
+export * from './createFlow';
 export * from './installBrowserErrorReporting';
 export * from './withCache';
 export * from './withEmit';

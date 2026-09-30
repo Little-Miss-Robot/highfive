@@ -764,9 +764,11 @@ The decorators use TypeScript's standard decorator proposal and support
 asynchronous methods. Each decorator receives the dependency it calls. Pass
 that dependency when the class is defined.
 
-- `@cached(cache, key, ttlMs?)` caches a fulfilled result as JSON. `key` may
-  be a string or a function of the method arguments. A TTL must be a positive,
-  finite number when the cache enforces that rule.
+- `@cached(cache, key, ttlMs?, options?)` caches a fulfilled result. Without
+  `options.serializer`, the value is stored with `JSON.stringify` and read
+  with `JSON.parse`. `key` may be a string or a function of the method
+  arguments. A TTL must be a positive, finite number when the cache enforces
+  that rule.
 - `@retry(retryPolicy, options?)` applies the given `RetryPolicy`.
 - `@timeout(timeout, durationMs)` applies the given `Timeout`.
 - `@singleFlight(deduplicator, idGenerator, keyFor?)` coalesces concurrent
@@ -814,12 +816,14 @@ method first, then `retry`, then `cached`. Ordering changes behavior.
 `@timeout` enforces a deadline but cannot pass its generated signal into the
 decorated method; use the `Timeout` contract directly when the operation must
 receive that signal. `@cached` stores `JSON.stringify` output and returns
-`JSON.parse` output as the method's result type.
+`JSON.parse` output unless `options.serializer` is set. That serializer's
+`serialize` result is what gets stored, and `deserialize` is what a hit
+returns.
 
 The same wrappers exist for a function. Pass the dependencies first, then the
 operation:
 
-- `withCache(cache, key, ttlMs?)`
+- `withCache(cache, key, ttlMs?, options?)`
 - `withRetry(retryPolicy, options?)`
 - `withTimeout(timeout, durationMs)`
 - `withSingleFlight(deduplicator, idGenerator, keyFor?)` coalesces concurrent
@@ -848,6 +852,50 @@ const find = withCache(cache, (id: string) => `user:${id}`, 60_000)(
         }),
     ),
 );
+```
+
+`createFacades(container)` returns one function per container binding. Calling
+`facades.clock()` resolves that binding through `container.make`. The returned
+object is not a promise, so awaiting it does not resolve the container.
+
+`createFlow(operation)` returns that async function with a `use` method.
+`use` takes a wrapper such as `withRetry`, `withValidate`, or `withTransform`
+and returns the next flow. Wrappers apply from the inside out: the first
+`use` is the innermost layer. The flow itself is the function you call.
+
+```ts
+import {
+    createFlow,
+    withRetry,
+    withTransform,
+    withValidate,
+} from '@littlemissrobot/highfive';
+
+const getUser = createFlow(async (id: string) => {
+    const response = await http.get(`/api/users/${id}`);
+
+    return response.json();
+})
+    .use(withRetry(retryPolicy, { attempts: 3, delayMs: 250 }))
+    .use(withValidate(userValidator))
+    .use(withTransform(toUser));
+
+const user = await getUser('ada');
+```
+
+`installBrowserErrorReporting(reporter)` listens for `error` and
+`unhandledrejection` on `window` and sends both to an `ErrorReporter`. An
+`error` event is reported with `source: 'uncaught-exception'`. An
+`unhandledrejection` event is reported with `source: 'unhandled-rejection'`.
+The returned function removes those listeners. This helper needs a browser
+`window`.
+
+```ts
+import { installBrowserErrorReporting } from '@littlemissrobot/highfive';
+
+const uninstall = installBrowserErrorReporting(reporter);
+
+uninstall();
 ```
 
 ## Runtime requirements
