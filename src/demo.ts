@@ -15,12 +15,13 @@ import { executionProvider } from '@implementations/execution/provider';
 import { httpProvider } from '@implementations/http/provider';
 import { identifiersProvider } from '@implementations/identifiers/provider';
 import { loggerProvider } from '@implementations/logger/provider';
-import { JsonSerializer } from '@implementations/serializer/JsonSerializer';
+import { serializerProvider } from '@implementations/serializer/provider';
 
 // Simple domain model
 interface Dadjoke {
     id: string
     joke: string
+    received?: Date
 }
 
 // Type guard
@@ -66,15 +67,17 @@ const container = new DefaultContainer<{
     .register(identifiersProvider)
     .register(cacheProvider)
     .register(loggerProvider)
+    .register(serializerProvider)
     .singleton('dadjokeEvents', () => new InMemoryEventBus())
 ;
 
 // Basic facades
-const { http, logger, cache, dadjokeEvents, deduplicator, idGenerator } = createFacades(container);
+const { http, logger, cache, dadjokeEvents, deduplicator, idGenerator, serializer } = createFacades(container);
 
 // Events
 dadjokeEvents().on('received', (dadjoke) => {
     logger().info(`Dadjoke received with id ${dadjoke.id}`);
+    dadjoke.received = new Date();
 });
 
 // Dadjoke service
@@ -96,8 +99,6 @@ class DadjokeService {
         return json;
     }
 }
-
-const serializer = new JsonSerializer(validator.validate);
 
 const jokes = await Promise.all([
     DadjokeService.get(),
@@ -125,7 +126,10 @@ console.log(jokes);
 console.log(jokes2);
 
 jokes.forEach((joke) => {
-    const serializedJoke = serializer.serialize(joke);
+    const serializedJoke = serializer().serialize(joke);
     logger().info(`Serialized joke: ${serializedJoke}`);
-    const deserializedJoke = serializer.deserialize(serializedJoke);
+    const deserializedJoke = serializer().deserialize(serializedJoke);
+    const dadjoke = validator.validate(deserializedJoke);
+
+    console.log(dadjoke.received?.getFullYear());
 });

@@ -22,4 +22,6 @@ export * from './identifiers/provider';
 export * from './logger/ConsoleLogger';
 export * from './logger/provider';
 export * from './navigation/DefaultUrlBuilder';
+export * from './serializer/DateCodec';
 export * from './serializer/JsonSerializer';
+export * from './serializer/provider';

@@ -47,8 +47,9 @@ instead of a particular framework, vendor, or runtime implementation.
 - **`UrlBuilder<Routes>`** — builds a URL from a typed route table.
 - **`Notification`** and **`Notifier`** — describe user-facing notifications
   and their lifecycle.
-- **`Serializer<Value, Serialized>`** — converts a value to a serialized form
-  and back.
+- **`Serializer`**, **`SerializationCodec`**, and **`CodecRegistry`** —
+  convert a value to a serialized form and back, including values a codec
+  preserves.
 - **`Validator<T>`** — checks an unknown value and returns a typed result, or
   throws when the value is rejected.
 
@@ -74,7 +75,7 @@ Normative requirements for each contract are in [`specs/`](./specs). Those docum
 - [Logger](./specs/logger.md)
 - [UrlBuilder](./specs/url-builder.md)
 - [Notification and Notifier](./specs/notifier.md)
-- [Serializer](./specs/serializer.md)
+- [Serializer, SerializationCodec, and CodecRegistry](./specs/serializer.md)
 - [Validator](./specs/validator.md)
 
 ### Analytics
@@ -466,40 +467,60 @@ include a notifier implementation.
 [Specification](./specs/serializer.md)
 
 ```ts
-interface Serializer<Value, Serialized = string> {
-    serialize(value: Value): Serialized;
-    deserialize(serialized: Serialized): Value;
+interface Serializer<Serialized = string> {
+    serialize(value: unknown): Serialized;
+    deserialize<T = unknown>(serialized: Serialized): T;
+}
+
+interface SerializationCodec<T> {
+    readonly type: string;
+    supports(value: unknown): value is T;
+    encode(value: T): unknown;
+    decode(value: unknown): T;
+}
+
+interface CodecRegistry {
+    register<T>(codec: SerializationCodec<T>): void;
 }
 ```
 
-`JsonSerializer(decode)` serializes with `JSON.stringify` and deserializes with
-`JSON.parse`. `decode` receives the parsed value and must return `Value` or
-throw. Serialization throws a `TypeError` when `JSON.stringify` returns
-`undefined`.
+`T` on `deserialize` is the static type of the restored value. Check the
+result with a `Validator` when the caller needs that value rejected or
+narrowed.
+
+`JsonSerializer` serializes to a JSON string and implements `CodecRegistry`.
+The constructor registers each codec it is given, in order. A plain object,
+array, string, boolean, `null`, or finite number other than `-0` round-trips.
+`undefined`, a bigint, a symbol, a function, `NaN`, an infinity, `-0`, a
+circular reference, or an object that is not a plain object throws a
+`TypeError` unless a registered codec supports that value.
+
+`register` adds a codec. An empty `type`, or a `type` that is already
+registered, throws a `TypeError`. When several codecs support a value, the
+first one registered serializes it. The JSON records that codec's `type`.
+
+`DateCodec` supports every `Date`. `encode` stores `toISOString()` and throws
+a `TypeError` for an invalid `Date`. `decode` restores a `Date` from that
+exact string and throws a `TypeError` for any other value.
 
 ```ts
-import { JsonSerializer } from '@littlemissrobot/highfive';
+import { DateCodec, JsonSerializer } from '@littlemissrobot/highfive';
 
-interface User {
-    name: string;
-}
+const serializer = new JsonSerializer([new DateCodec()]);
 
-const users = new JsonSerializer<User>((value) => {
-    if (
-        typeof value !== 'object'
-        || value === null
-        || !('name' in value)
-        || typeof value.name !== 'string'
-    ) {
-        throw new TypeError('Expected a user');
-    }
-
-    return { name: value.name };
+const json = serializer.serialize({
+    name: 'Ada',
+    joined: new Date('2020-01-02T03:04:05.000Z'),
 });
 
-const json = users.serialize({ name: 'Ada' });
-const user = users.deserialize(json);
+const user = serializer.deserialize<{
+    name: string;
+    joined: Date;
+}>(json);
 ```
+
+`serializerProvider` registers that serializer, including `DateCodec`, as the
+`serializer` singleton.
 
 ### Validator
 
@@ -573,6 +594,8 @@ Reusable Vitest contract suites are exported from the package's
 - `testUrlBuilderContract`
 - `testNotifierContract`
 - `testSerializerContract`
+- `testSerializationCodecContract`
+- `testCodecRegistryContract`
 - `testValidatorContract`
 
 ```ts
@@ -629,6 +652,7 @@ Available providers are:
 - `cacheProvider`
 - `httpProvider`
 - `analyticsProvider`
+- `serializerProvider`
 
 `http` reads `httpAuth` when `http` is first resolved. Replace the `httpAuth`
 singleton before that resolution when requests need authentication.
