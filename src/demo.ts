@@ -1,7 +1,6 @@
 import type { EventBus } from '@contracts/events/EventBus';
 import type { Transformer } from '@contracts/transformer/Transformer';
 import type { Validator } from '@contracts/validation/Validator';
-import * as events from "node:events";
 import { cached } from '@decorators/cache';
 import { emit } from '@decorators/emit';
 import { log } from '@decorators/log';

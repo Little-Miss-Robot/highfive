@@ -16,102 +16,53 @@ The package ships ESM and CommonJS builds with TypeScript declarations.
 
 ## Contracts
 
-Highfive is primarily a collection of small TypeScript contracts for
-application infrastructure. Application code can depend on these interfaces
-instead of a particular framework, vendor, or runtime implementation.
+Highfive is a collection of small TypeScript contracts for application
+infrastructure. Application code can depend on these interfaces instead of a
+particular framework, vendor, or runtime implementation. Normative requirements
+are in [`specs/`](./specs). Those documents use the key words defined by
+[RFC 2119](https://www.rfc-editor.org/info/rfc2119/).
 
-### The package provides:
+- [Analytics](#analytics)
+- [Cache](#cache)
+- [Clock](#clock)
+- [Config](#config)
+- [Container](#container)
+- [ServiceProvider](#serviceprovider)
+- [Tracer](#tracer)
+- [ErrorReporter](#errorreporter)
+- [EventBus](#eventbus)
+- [Deduplicator](#deduplicator)
+- [RetryPolicy](#retrypolicy)
+- [Timeout](#timeout)
+- [Filesystem](#filesystem)
+- [HttpAuth](#httpauth)
+- [HttpClient](#httpclient)
+- [IdGenerator](#idgenerator)
+- [Logger](#logger)
+- [UrlBuilder](#urlbuilder)
+- [Notification](#notification)
+- [Notifier](#notifier)
+- [Serializer](#serializer)
+- [SerializationCodec](#serializationcodec)
+- [CodecRegistry](#codecregistry)
+- [Validator](#validator)
+- [Transformer](#transformer)
 
-- **`Analytics`** — records a named tracking event with optional data.
-- **`Cache`** — asynchronously reads, writes, and deletes string values, with
-  optional time-to-live support.
-- **`Clock`** — returns the current `Date`, making time replaceable in tests.
-- **`Config<Values>`** — reads a typed configuration value by key.
-- **`Container`** and **`ServiceProvider`** — describe typed dependency
-  resolution and composable service registration.
-- **`Tracer`** — observes an asynchronous operation while preserving its result
-  or error.
-- **`ErrorReporter`** — reports an error with optional context.
-- **`EventBus<E>`** — publishes typed events and subscribes typed listeners.
-- **`Deduplicator`** — coalesces concurrent asynchronous work by key.
-- **`RetryPolicy`** — runs an asynchronous operation again after failure,
-  according to configurable retry rules.
-- **`Timeout`** — applies a deadline and supplies an `AbortSignal` to an
-  asynchronous operation.
-- **`Filesystem`** — reads, writes, deletes, checks, and moves binary files.
-- **`HttpAuth`** — transforms an HTTP request before it is sent.
-- **`HttpClient`** — sends `GET`, `POST`, `PUT`, `PATCH`, and `DELETE` requests.
-- **`IdGenerator`** — generates identifiers that are unique for the
-  application's lifetime.
-- **`Logger`** — writes info, warning, and error messages.
-- **`UrlBuilder<Routes>`** — builds a URL from a typed route table.
-- **`Notification`** and **`Notifier`** — describe user-facing notifications
-  and their lifecycle.
-- **`Serializer`**, **`SerializationCodec`**, and **`CodecRegistry`** —
-  convert a value to a serialized form and back, including values a codec
-  preserves.
-- **`Validator<T>`** — checks an unknown value and returns a typed result, or
-  throws when the value is rejected.
-- **`Transformer<In, Out>`** — maps a value of type `In` to a value of type
-  `Out`.
-
-## Contract reference
-
-Normative requirements for each contract are in [`specs/`](./specs). Those documents use the key words defined by [RFC 2119](https://www.rfc-editor.org/info/rfc2119/).
-
-- [Analytics](./specs/analytics.md)
-- [Cache](./specs/cache.md)
-- [Clock](./specs/clock.md)
-- [Config](./specs/config.md)
-- [Container and ServiceProvider](./specs/container.md)
-- [Tracer](./specs/tracer.md)
-- [ErrorReporter](./specs/error-reporter.md)
-- [EventBus](./specs/event-bus.md)
-- [Deduplicator](./specs/deduplicator.md)
-- [RetryPolicy](./specs/retry-policy.md)
-- [Timeout](./specs/timeout.md)
-- [Filesystem](./specs/filesystem.md)
-- [HttpAuth](./specs/http-auth.md)
-- [HttpClient](./specs/http-client.md)
-- [IdGenerator](./specs/id-generator.md)
-- [Logger](./specs/logger.md)
-- [UrlBuilder](./specs/url-builder.md)
-- [Notification and Notifier](./specs/notifier.md)
-- [Serializer, SerializationCodec, and CodecRegistry](./specs/serializer.md)
-- [Validator](./specs/validator.md)
-- [Transformer](./specs/transformer.md)
-
-### Analytics
+## Analytics
 
 [Specification](./specs/analytics.md)
 
-```ts
-type AnalyticsValue = string | number | boolean | null;
-type AnalyticsPayload = Record<string, AnalyticsValue>;
-
-interface Analytics {
-    track(event: string, properties?: AnalyticsPayload): void;
-}
-```
+`Analytics` records a named tracking event with optional data.
 
 `LoggerAnalytics(logger)` is the included adapter. It writes events through a
 `Logger`.
 
-### Cache
+## Cache
 
 [Specification](./specs/cache.md)
 
-```ts
-interface Cache {
-    get(key: string): Promise<string | undefined>;
-    set(
-        key: string,
-        value: string,
-        options?: { ttlMs?: number },
-    ): Promise<void>;
-    delete(key: string): Promise<void>;
-}
-```
+`Cache` asynchronously reads, writes, and deletes string values, with optional
+time-to-live support.
 
 Included adapters:
 
@@ -133,92 +84,69 @@ await cache.set('session', 'active', { ttlMs: 60_000 });
 const session = await cache.get('session');
 ```
 
-### Clock
+## Clock
 
 [Specification](./specs/clock.md)
 
-```ts
-interface Clock {
-    now(): Date;
-}
-```
+`Clock` returns the current `Date`, so application code can receive time from
+outside the process clock.
 
 `SystemClock` reads the system time. `AdvanceableClock` is a deterministic fake
 whose time starts at the Unix epoch and can be moved forward with
 `advance(durationMs)`.
 
-### Config
+## Config
 
 [Specification](./specs/config.md)
 
-```ts
-interface Config<Values extends object> {
-    get<Key extends keyof Values>(key: Key): Values[Key];
-}
-```
+`Config<Values>` reads a typed configuration value by key.
 
-Highfive defines this contract but does not include a config
-implementation.
+Highfive defines this contract and does not include a config implementation.
 
-### Container and service providers
+## Container
 
 [Specification](./specs/container.md)
 
 `Container<B>` binds factories, binds lazy singletons, registers providers, and
 resolves services with `make`. Its type includes `dependencyTypes`, the binding
 map. Implementations declare that property and do not assign it. Callers do
-not read it. `ServiceProvider<Provides, Requires>` describes the services a
-provider adds and the services it needs.
+not read it.
 
 `DefaultContainer` is the included implementation. Create one and register
 providers in dependency order. Container usage is optional; all other
 implementations can be constructed directly.
 
-### Tracing
+## ServiceProvider
+
+[Specification](./specs/container.md)
+
+`ServiceProvider<Provides, Requires>` describes the services a provider adds
+and the services that provider needs before it can register them.
+
+## Tracer
 
 [Specification](./specs/tracer.md)
 
-```ts
-interface Tracer {
-    trace<T>(name: string, operation: () => Promise<T>): Promise<T>;
-}
-```
+`Tracer` observes an asynchronous operation while preserving its result or
+error.
 
 `LogTracer(logger)` measures an operation with `performance.now()` and logs its
 duration and success or failure through a `Logger`.
 
-### Error reporting
+## ErrorReporter
 
 [Specification](./specs/error-reporter.md)
 
-```ts
-interface ErrorReportContext {
-    tags?: Record<string, string>;
-    extra?: Record<string, unknown>;
-}
-
-interface ErrorReporter {
-    report(error: unknown, context?: ErrorReportContext): void;
-}
-```
+`ErrorReporter` reports an error with optional context.
 
 `ConsoleErrorReporter` writes the error and the optional context to
 `console.error`.
 
-### Events
+## EventBus
 
 [Specification](./specs/event-bus.md)
 
-```ts
-interface EventBus<E extends object> {
-    on<K extends keyof E>(
-        event: K,
-        listener: (payload: E[K]) => void,
-    ): () => void;
-
-    emit<K extends keyof E>(event: K, payload: E[K]): void;
-}
-```
+`EventBus<E>` publishes typed events and subscribes typed listeners.
 
 `InMemoryEventBus<E>` invokes listeners synchronously in registration order.
 `on` returns an unsubscribe function. Listener errors propagate from `emit`.
@@ -240,46 +168,36 @@ events.emit('signedIn', { userId: 'user-123' });
 unsubscribe();
 ```
 
-### Execution
+## Deduplicator
 
-Specifications: [Deduplicator](./specs/deduplicator.md), [RetryPolicy](./specs/retry-policy.md), [Timeout](./specs/timeout.md)
+[Specification](./specs/deduplicator.md)
 
-```ts
-interface Deduplicator {
-    run<T>(key: string, operation: () => Promise<T>): Promise<T>;
-}
+`Deduplicator` coalesces concurrent asynchronous work by key.
 
-interface RetryPolicy {
-    run<T>(
-        operation: (attempt: number) => Promise<T>,
-        options?: {
-            attempts?: number;
-            delayMs?: number;
-            shouldRetry?: (
-                error: unknown,
-                failedAttempt: number,
-            ) => boolean;
-        },
-    ): Promise<T>;
-}
+`SingleFlightDeduplicator` shares one pending promise per key and forgets it
+after the operation settles.
 
-interface Timeout {
-    run<T>(
-        operation: (signal: AbortSignal) => Promise<T>,
-        durationMs: number,
-        signal?: AbortSignal,
-    ): Promise<T>;
-}
-```
+## RetryPolicy
 
-Included implementations:
+[Specification](./specs/retry-policy.md)
 
-- `SingleFlightDeduplicator` shares one pending promise per key and forgets it
-  after the operation settles.
-- `DefaultRetryPolicy` makes three attempts by default, with no delay. It
-  passes a one-based attempt number to the operation.
-- `DefaultTimeout` rejects with `TimeoutError` when its deadline is reached and
-  propagates cancellation from an optional parent signal.
+`RetryPolicy` runs an asynchronous operation again after failure, according to
+configurable retry rules.
+
+`DefaultRetryPolicy` makes three attempts by default, with no delay. It
+passes a one-based attempt number to the operation.
+
+## Timeout
+
+[Specification](./specs/timeout.md)
+
+`Timeout` applies a deadline and supplies an `AbortSignal` to an asynchronous
+operation.
+
+`DefaultTimeout` rejects with `TimeoutError` when its deadline is reached and
+propagates cancellation from an optional parent signal. The operation should
+observe its signal. A timeout cannot stop arbitrary JavaScript work that
+ignores cancellation.
 
 ```ts
 import {
@@ -302,51 +220,34 @@ const response = await deduplicator.run('current-user', () =>
 );
 ```
 
-The operation passed to `Timeout` should observe its signal. A timeout cannot
-stop arbitrary JavaScript work that ignores cancellation.
-
-### Filesystem
+## Filesystem
 
 [Specification](./specs/filesystem.md)
 
-```ts
-interface Filesystem {
-    read(path: string): Promise<Uint8Array>;
-    write(path: string, contents: Uint8Array): Promise<void>;
-    delete(path: string): Promise<void>;
-    exists(path: string): Promise<boolean>;
-    move(from: string, to: string): Promise<void>;
-}
-```
+`Filesystem` reads, writes, deletes, checks, and moves binary files.
 
-Highfive defines this contract but does not include a filesystem
+Highfive defines this contract and does not include a filesystem
 implementation.
 
-### HTTP
+## HttpAuth
 
-Specifications: [HttpAuth](./specs/http-auth.md), [HttpClient](./specs/http-client.md)
+[Specification](./specs/http-auth.md)
 
-```ts
-interface HttpAuth {
-    authorize(request: HttpAuthRequest): Promise<HttpAuthRequest>;
-}
-
-interface HttpClient {
-    get(url: string, options?: HttpOptions): Promise<Response>;
-    post(url: string, options?: HttpBodyOptions): Promise<Response>;
-    put(url: string, options?: HttpBodyOptions): Promise<Response>;
-    patch(url: string, options?: HttpBodyOptions): Promise<Response>;
-    delete(url: string, options?: HttpBodyOptions): Promise<Response>;
-}
-```
-
-`FetchHttpClient(auth?)` uses the global `fetch`. It resolves with the native
-`Response` for successful responses and rejects with `HttpStatusError` for
-non-2xx responses. `HttpStatusError` exposes the response `status`.
+`HttpAuth` transforms an HTTP request before it is sent.
 
 `BearerHttpAuth(getToken)` obtains a token asynchronously and adds an
 `Authorization: Bearer <token>` header. `getToken` receives the request's
 `AbortSignal`.
+
+## HttpClient
+
+[Specification](./specs/http-client.md)
+
+`HttpClient` sends `GET`, `POST`, `PUT`, `PATCH`, and `DELETE` requests.
+
+`FetchHttpClient(auth?)` uses the global `fetch`. It resolves with the native
+`Response` for successful responses and rejects with `HttpStatusError` for
+non-2xx responses. `HttpStatusError` exposes the response `status`.
 
 ```ts
 import {
@@ -378,52 +279,29 @@ catch (error) {
 }
 ```
 
-### Identifiers
+## IdGenerator
 
 [Specification](./specs/id-generator.md)
 
-```ts
-interface IdGenerator {
-    generate(): string;
-}
-```
+`IdGenerator` generates identifiers that are unique for the application's
+lifetime.
 
 `CryptoIdGenerator` delegates to `globalThis.crypto.randomUUID()`.
 
-### Logging
+## Logger
 
 [Specification](./specs/logger.md)
 
-```ts
-enum LogLevel {
-    ERROR,
-    WARNING,
-    INFO,
-}
-
-interface Logger {
-    error(message: string): void;
-    warning(message: string): void;
-    info(message: string): void;
-    log(level: LogLevel, message: string): void;
-}
-```
+`Logger` writes info, warning, and error messages.
 
 `ConsoleLogger(clock)` writes timestamped messages to the corresponding
 console method. `NothingLogger` implements `Logger` and discards every message.
 
-### URLs
+## UrlBuilder
 
 [Specification](./specs/url-builder.md)
 
-```ts
-interface UrlBuilder<Routes extends object> {
-    make<Key extends keyof Routes & string>(
-        key: Key,
-        ...args: RouteArgs<Routes[Key]>
-    ): string;
-}
-```
+`UrlBuilder<Routes>` builds a URL from a typed route table.
 
 A route is either a string or a function that returns a string. `RouteArgs`
 is the function's argument list, or an empty list for a string route.
@@ -442,54 +320,33 @@ urls.make('home');
 urls.make('profile', 'user-123');
 ```
 
-### Notifications
+## Notification
 
 [Specification](./specs/notifier.md)
 
-```ts
-type NotificationLevel = 'info' | 'success' | 'warning' | 'error';
-
-interface Notification {
-    message: string;
-    level: NotificationLevel;
-    durationMs?: number | null;
-}
-
-interface Notifier {
-    notify(notification: Notification): string;
-    dismiss(id: string): void;
-}
-```
+`Notification` describes a user-facing message, its level, and how long it
+stays visible.
 
 Omit `durationMs` to use an adapter's default duration. Set it to `null` to
-keep a notification visible. Highfive defines these contracts but does not
-include a notifier implementation.
+keep a notification visible.
 
-### Serializer
+## Notifier
+
+[Specification](./specs/notifier.md)
+
+`Notifier` shows a notification and dismisses one by the identifier `notify`
+returned.
+
+Highfive defines this contract and does not include a notifier implementation.
+
+## Serializer
 
 [Specification](./specs/serializer.md)
 
-```ts
-interface Serializer<Serialized = string> {
-    serialize(value: unknown): Serialized;
-    deserialize<T = unknown>(serialized: Serialized): T;
-}
-
-interface SerializationCodec<T> {
-    readonly type: string;
-    supports(value: unknown): value is T;
-    encode(value: T): unknown;
-    decode(value: unknown): T;
-}
-
-interface CodecRegistry {
-    register<T>(codec: SerializationCodec<T>): void;
-}
-```
-
-`T` on `deserialize` is the static type of the restored value. Check the
-result with a `Validator` when the caller needs that value rejected or
-narrowed.
+`Serializer<Serialized>` converts a value to a serialized form and back.
+`Serialized` defaults to `string`. `T` on `deserialize` is the static type of
+the restored value. Check the result with a `Validator` when the caller needs
+that value rejected or narrowed.
 
 `JsonSerializer` serializes to a JSON string and implements `CodecRegistry`.
 The constructor registers each codec it is given, in order. A plain object,
@@ -497,28 +354,6 @@ array, string, boolean, `null`, or finite number other than `-0` round-trips.
 `undefined`, a bigint, a symbol, a function, `NaN`, an infinity, `-0`, a
 circular reference, or an object that is not a plain object throws a
 `TypeError` unless a registered codec supports that value.
-
-`register` adds a codec. An empty `type`, or a `type` that is already
-registered, throws a `TypeError`. When several codecs support a value, the
-first one registered serializes it. The JSON records that codec's `type`.
-
-Each built-in codec supports every value of its type. `encode` stores the
-representation below. `decode` restores the value from that representation
-and throws a `TypeError` for any other value. `DateCodec` also throws a
-`TypeError` when encoding an invalid `Date`. `Uint8ArrayCodec` and
-`ArrayBufferCodec` throw a `TypeError` when the buffer is detached.
-
-| Codec | Representation |
-| --- | --- |
-| `DateCodec` | `toISOString()` |
-| `BigIntCodec` | Canonical decimal string, such as `"0"`, `"1"`, or `"-42"` |
-| `URLCodec` | `href` |
-| `URLSearchParamsCodec` | `toString()` |
-| `RegExpCodec` | `{ source, flags }` using the canonical `flags` string. `lastIndex` is omitted |
-| `MapCodec` | Array of `[key, value]` pairs in insertion order |
-| `SetCodec` | Array of values in insertion order |
-| `Uint8ArrayCodec` | Array of integers from 0 through 255, covering the view |
-| `ArrayBufferCodec` | Array of integers from 0 through 255 |
 
 ```ts
 import { DateCodec, JsonSerializer, MapCodec } from '@littlemissrobot/highfive';
@@ -546,20 +381,49 @@ const user = serializer.deserialize<{
 `SetCodec`, `Uint8ArrayCodec`, and `ArrayBufferCodec`, as the `serializer`
 singleton.
 
-### Validator
+## SerializationCodec
+
+[Specification](./specs/serializer.md)
+
+`SerializationCodec<T>` preserves a value that the serialized form cannot
+represent on its own. `type` identifies the codec inside a serialized value.
+`supports` reports whether the codec claims a value. `encode` returns the
+representation to store. `decode` restores `T` from that representation.
+
+Each built-in codec supports every value of its type. `encode` stores the
+representation below. `decode` restores the value from that representation
+and throws a `TypeError` for any other value. `DateCodec` also throws a
+`TypeError` when encoding an invalid `Date`. `Uint8ArrayCodec` and
+`ArrayBufferCodec` throw a `TypeError` when the buffer is detached.
+
+| Codec | Representation |
+| --- | --- |
+| `DateCodec` | `toISOString()` |
+| `BigIntCodec` | Canonical decimal string, such as `"0"`, `"1"`, or `"-42"` |
+| `URLCodec` | `href` |
+| `URLSearchParamsCodec` | `toString()` |
+| `RegExpCodec` | `{ source, flags }` using the canonical `flags` string. `lastIndex` is omitted |
+| `MapCodec` | Array of `[key, value]` pairs in insertion order |
+| `SetCodec` | Array of values in insertion order |
+| `Uint8ArrayCodec` | Array of integers from 0 through 255, covering the view |
+| `ArrayBufferCodec` | Array of integers from 0 through 255 |
+
+## CodecRegistry
+
+[Specification](./specs/serializer.md)
+
+`CodecRegistry` makes serialization codecs available to a serializer.
+`register` adds a codec. An empty `type`, or a `type` that is already
+registered, throws a `TypeError`. When several codecs support a value, the
+first one registered serializes it. The JSON records that codec's `type`.
+
+## Validator
 
 [Specification](./specs/validator.md)
 
-```ts
-interface ValidationIssue {
-    readonly path: readonly (string | number)[];
-    readonly message: string;
-}
-
-interface Validator<T> {
-    validate(value: unknown): T;
-}
-```
+`Validator<T>` checks an unknown value and returns a typed result, or throws
+when the value is rejected. `ValidationIssue` describes one reason a value was
+rejected.
 
 A rejected value throws an `Error` named `ValidationError`.
 `ValidationError` is the included error for that shape. `issues` lists what
@@ -613,21 +477,17 @@ user.validate({
 });
 ```
 
-### Transformer
+## Transformer
 
 [Specification](./specs/transformer.md)
 
-```ts
-interface Transformer<In, Out> {
-    transform(value: In): Out;
-}
-```
+`Transformer<In, Out>` maps a value of type `In` to a value of type `Out`.
 
-`transform` maps a value of type `In` to the `Out` defined for that input. The
-result may be the same reference, a copy, or a value with a different shape.
-The same input produces a deeply equal result on a later call. A value that
-cannot be represented throws, and the implementation chooses the exception.
-There is no included adapter.
+`transform` returns the `Out` defined for that input. The result may be the
+same reference, a copy, or a value with a different shape. The same input
+produces a deeply equal result on a later call. A value that cannot be
+represented throws, and the implementation chooses the exception. There is no
+included adapter.
 
 ```ts
 interface ApiUser {
