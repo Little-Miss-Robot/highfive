@@ -780,9 +780,6 @@ that dependency when the class is defined.
   method's result type must match the event payload.
 - `@validate(validator)` checks a fulfilled result with the given `Validator`.
   The method's result type must match the validator's result type.
-- `@transform(transformer)` maps a fulfilled result with the given
-  `Transformer`. The method's result type must match the transformer's input
-  type.
 
 ```ts
 import {

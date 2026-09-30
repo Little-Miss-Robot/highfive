@@ -1,11 +1,17 @@
 import type { EventBus } from '@contracts/events/EventBus';
 import type { Transformer } from '@contracts/transformer/Transformer';
 import type { Validator } from '@contracts/validation/Validator';
+import * as events from "node:events";
 import { cached } from '@decorators/cache';
 import { emit } from '@decorators/emit';
 import { log } from '@decorators/log';
 import { singleFlight } from '@decorators/singleFlight';
 import { createFacades } from '@helpers/createFacades';
+import { createFlow } from '@helpers/createFlow';
+import { withEmit } from '@helpers/withEmit';
+import { withRetry } from '@helpers/withRetry';
+import { withTransform } from '@helpers/withTransform';
+import { withValidate } from '@helpers/withValidate';
 import { cacheProvider } from '@implementations/cache/provider';
 import { clockProvider } from '@implementations/clock/provider';
 import { DefaultContainer } from '@implementations/container/DefaultContainer';
@@ -42,8 +48,7 @@ interface Dadjoke {
 
 // Container & dependencies
 const container = new DefaultContainer<{
-    dadjokeEvents: () => EventBus<Events>
-    jokeValidator: () => Validator<Dadjoke>
+    events: () => EventBus<Events>
 }>()
     .register(clockProvider)
     .register(httpProvider)
@@ -52,23 +57,23 @@ const container = new DefaultContainer<{
     .register(cacheProvider)
     .register(loggerProvider)
     .register(serializerProvider)
-    .singleton('dadjokeEvents', () => new InMemoryEventBus())
+    .singleton('events', () => new InMemoryEventBus())
 ;
 
-const { clock, http, logger, cache, dadjokeEvents, deduplicator, idGenerator, serializer } = createFacades(container);
+const { clock, http, logger, cache, events, deduplicator, idGenerator, serializer, retryPolicy } = createFacades(container);
 
 // Events
-dadjokeEvents().on('received', (dadjoke) => {
+events().on('received', (dadjoke) => {
     logger().info(`Dadjoke received with id ${dadjoke.id}`);
 });
 
-const apiDadjokeValidator = new ObjectValidator({
+const apiDadjokeValidator: Validator<ApiDadjoke> = new ObjectValidator({
     id: new StringValidator({ nonEmpty: true }),
     joke: new StringValidator({ nonEmpty: true }),
     status: new NumberValidator(),
 });
 
-const dadjokeValidator = new ObjectValidator({
+const dadjokeValidator: Validator<Dadjoke> = new ObjectValidator({
     id: new StringValidator({ nonEmpty: true }),
     joke: new StringValidator({ nonEmpty: true }),
     received: new DateValidator(),
@@ -92,7 +97,7 @@ const toDadjoke: Transformer<ApiDadjoke, Dadjoke> = {
 
 class DadjokeService {
     @log(logger())
-    @emit(dadjokeEvents(), 'received')
+    @emit(events(), 'received')
     @cached(cache(), 'dadjoke', 4000, { serializer: serializer() })
     @singleFlight(deduplicator(), idGenerator())
     static async get(): Promise<Dadjoke> {
@@ -108,6 +113,23 @@ class DadjokeService {
     }
 }
 
+const dadjokeApiService = {
+    get: createFlow(async () => {
+        const response = await http().get('https://icanhazdadjoke.com/', {
+            headers: { Accept: 'application/json' },
+        });
+
+        return response.json();
+    })
+        .use(withRetry(retryPolicy()))
+        .use(withValidate(apiDadjokeValidator))
+        .use(withTransform(toDadjoke))
+        .use(withEmit(events(), 'received')),
+};
+
+const response = await dadjokeApiService.get();
+console.log(response);
+
 const jokes = await Promise.all([
     DadjokeService.get(),
     DadjokeService.get(),
@@ -119,19 +141,7 @@ const jokes = await Promise.all([
     DadjokeService.get(),
 ]);
 
-const jokes2 = await Promise.all([
-    DadjokeService.get(),
-    DadjokeService.get(),
-    DadjokeService.get(),
-    DadjokeService.get(),
-    DadjokeService.get(),
-    DadjokeService.get(),
-    DadjokeService.get(),
-    DadjokeService.get(),
-]);
-
 console.log(jokes);
-console.log(jokes2);
 
 jokes.forEach((joke) => {
     const serializedJoke = serializer().serialize(joke);
@@ -141,4 +151,5 @@ jokes.forEach((joke) => {
 
     console.log(dadjoke.received?.getFullYear());
     console.log(dadjoke.extra.url);
+    console.log(dadjoke);
 });
