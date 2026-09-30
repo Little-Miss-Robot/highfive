@@ -31,6 +31,7 @@ instead of a particular framework, vendor, or runtime implementation.
   resolution and composable service registration.
 - **`Tracer`** — observes an asynchronous operation while preserving its result
   or error.
+- **`ErrorReporter`** — reports an error with optional context.
 - **`EventBus<E>`** — publishes typed events and subscribes typed listeners.
 - **`Deduplicator`** — coalesces concurrent asynchronous work by key.
 - **`RetryPolicy`** — runs an asynchronous operation again after failure,
@@ -61,6 +62,7 @@ Normative requirements for each contract are in [`specs/`](./specs). Those docum
 - [Config](./specs/config.md)
 - [Container and ServiceProvider](./specs/container.md)
 - [Tracer](./specs/tracer.md)
+- [ErrorReporter](./specs/error-reporter.md)
 - [EventBus](./specs/event-bus.md)
 - [Deduplicator](./specs/deduplicator.md)
 - [RetryPolicy](./specs/retry-policy.md)
@@ -180,6 +182,24 @@ interface Tracer {
 
 `LogTracer(logger)` measures an operation with `performance.now()` and logs its
 duration and success or failure through a `Logger`.
+
+### Error reporting
+
+[Specification](./specs/error-reporter.md)
+
+```ts
+interface ErrorReportContext {
+    tags?: Record<string, string>;
+    extra?: Record<string, unknown>;
+}
+
+interface ErrorReporter {
+    report(error: unknown, context?: ErrorReportContext): void;
+}
+```
+
+`ConsoleErrorReporter` writes the error and the optional context to
+`console.error`.
 
 ### Events
 
@@ -540,6 +560,7 @@ Reusable Vitest contract suites are exported from the package's
 - `testConfigContract`
 - `testContainerContract`
 - `testTracerContract`
+- `testErrorReporterContract`
 - `testEventBusContract`
 - `testDeduplicatorContract`
 - `testRetryPolicyContract`

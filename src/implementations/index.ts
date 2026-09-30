@@ -6,6 +6,7 @@ export * from './cache/provider';
 export * from './clock/SystemClock';
 export * from './clock/provider';
 export * from './container/DefaultContainer';
+export * from './diagnostics/ConsoleErrorReporter';
 export * from './diagnostics/LogTracer';
 export * from './diagnostics/provider';
 export * from './events/InMemoryEventBus';

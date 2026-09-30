@@ -3,6 +3,7 @@ export * from './cache/testCacheContract';
 export * from './clock/testClockContract';
 export * from './config/testConfigContract';
 export * from './container/testContainerContract';
+export * from './diagnostics/testErrorReporterContract';
 export * from './diagnostics/testTracerContract';
 export * from './events/testEventBusContract';
 export * from './execution/testDeduplicatorContract';

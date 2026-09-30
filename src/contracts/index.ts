@@ -4,6 +4,7 @@ export * from './clock/Clock';
 export * from './config/Config';
 export * from './container/Container';
 export * from './container/ServiceProvider';
+export * from './diagnostics/ErrorReporter';
 export * from './diagnostics/Tracer';
 export * from './events/EventBus';
 export * from './execution/Deduplicator';
