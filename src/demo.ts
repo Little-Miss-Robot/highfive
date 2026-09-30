@@ -1,10 +1,10 @@
 import type { EventBus } from '@contracts/events/EventBus';
+import type { Transformer } from '@contracts/transformer/Transformer';
 import type { Validator } from '@contracts/validation/Validator';
 import { cached } from '@decorators/cache';
 import { emit } from '@decorators/emit';
 import { log } from '@decorators/log';
 import { singleFlight } from '@decorators/singleFlight';
-import { validate } from '@decorators/validate';
 import { createFacades } from '@helpers/createFacades';
 import { cacheProvider } from '@implementations/cache/provider';
 import { clockProvider } from '@implementations/clock/provider';
@@ -16,11 +16,21 @@ import { identifiersProvider } from '@implementations/identifiers/provider';
 import { loggerProvider } from '@implementations/logger/provider';
 import { serializerProvider } from '@implementations/serializer/provider';
 import { DateValidator } from '@implementations/validation/DateValidator';
+import { NumberValidator } from '@implementations/validation/NumberValidator';
 import { ObjectValidator } from '@implementations/validation/ObjectValidator';
 import { StringValidator } from '@implementations/validation/StringValidator';
 import { URLValidator } from '@implementations/validation/URLValidator';
 
-// Simple domain model
+interface Events {
+    received: Dadjoke
+}
+
+interface ApiDadjoke {
+    id: string
+    joke: string
+    status: number
+}
+
 interface Dadjoke {
     id: string
     joke: string
@@ -28,11 +38,6 @@ interface Dadjoke {
     extra: {
         url: string
     }
-}
-
-// Events
-interface Events {
-    received: Dadjoke
 }
 
 // Container & dependencies
@@ -48,47 +53,58 @@ const container = new DefaultContainer<{
     .register(loggerProvider)
     .register(serializerProvider)
     .singleton('dadjokeEvents', () => new InMemoryEventBus())
-    .singleton('jokeValidator', () => {
-        return new ObjectValidator({
-            id: new StringValidator({ nonEmpty: true }),
-            joke: new StringValidator({ nonEmpty: true }),
-            received: new DateValidator(),
-            extra: new ObjectValidator({
-                url: new URLValidator(),
-            }),
-        });
-    })
 ;
 
-// Basic facades
-const { clock, http, logger, cache, dadjokeEvents, jokeValidator, deduplicator, idGenerator, serializer } = createFacades(container);
+const { clock, http, logger, cache, dadjokeEvents, deduplicator, idGenerator, serializer } = createFacades(container);
+
+const apiDadjokeValidator = new ObjectValidator({
+    id: new StringValidator({ nonEmpty: true }),
+    joke: new StringValidator({ nonEmpty: true }),
+    status: new NumberValidator(),
+});
+
+const dadjokeValidator = new ObjectValidator({
+    id: new StringValidator({ nonEmpty: true }),
+    joke: new StringValidator({ nonEmpty: true }),
+    received: new DateValidator(),
+    extra: new ObjectValidator({
+        url: new URLValidator(),
+    }),
+});
+
+const toDadjoke: Transformer<ApiDadjoke, Dadjoke> = {
+    transform(apiDadjoke) {
+        return {
+            id: apiDadjoke.id,
+            joke: apiDadjoke.joke,
+            received: clock().now(),
+            extra: {
+                url: `https://icanhazdadjoke.com/j/${apiDadjoke.id}`,
+            },
+        };
+    },
+};
 
 // Events
 dadjokeEvents().on('received', (dadjoke) => {
     logger().info(`Dadjoke received with id ${dadjoke.id}`);
 });
 
-// Dadjoke service
 class DadjokeService {
     @log(logger())
     @emit(dadjokeEvents(), 'received')
     @cached(cache(), 'dadjoke', 4000, { serializer: serializer() })
-    @validate(jokeValidator())
     @singleFlight(deduplicator(), idGenerator())
     static async get(): Promise<Dadjoke> {
         const response = await http().get('https://icanhazdadjoke.com/', {
-            headers: {
-                Accept: 'application/json',
-            },
+            headers: { Accept: 'application/json' },
         });
 
-        const json = await response.json();
-
-        json.received = clock().now();
-        json.extra = {};
-        json.extra.url = 'http://www.littlemissrobot.be';
-
-        return json;
+        return toDadjoke.transform(
+            apiDadjokeValidator.validate(
+                await response.json(),
+            ),
+        );
     }
 }
 
@@ -121,7 +137,7 @@ jokes.forEach((joke) => {
     const serializedJoke = serializer().serialize(joke);
     logger().info(`Serialized joke: ${serializedJoke}`);
     const deserializedJoke = serializer().deserialize(serializedJoke);
-    const dadjoke = jokeValidator().validate(deserializedJoke);
+    const dadjoke = dadjokeValidator.validate(deserializedJoke);
 
     console.log(dadjoke.received?.getFullYear());
     console.log(dadjoke.extra.url);
