@@ -22,6 +22,9 @@ interface Dadjoke {
     id: string
     joke: string
     received?: Date
+    fruits?: Map<string, string>
+    url: URL
+    searchParams: URLSearchParams
 }
 
 // Type guard
@@ -77,14 +80,13 @@ const { http, logger, cache, dadjokeEvents, deduplicator, idGenerator, serialize
 // Events
 dadjokeEvents().on('received', (dadjoke) => {
     logger().info(`Dadjoke received with id ${dadjoke.id}`);
-    dadjoke.received = new Date();
 });
 
 // Dadjoke service
 class DadjokeService {
     @log(logger())
     @emit(dadjokeEvents(), 'received')
-    @cached(cache(), 'dadjoke', 4000)
+    @cached(cache(), 'dadjoke', 4000, { serializer: serializer() })
     @validate(validator)
     @singleFlight(deduplicator(), idGenerator())
     static async get(): Promise<Dadjoke> {
@@ -95,6 +97,19 @@ class DadjokeService {
         });
 
         const json = await response.json();
+
+        json.received = new Date();
+        json.fruits = new Map<string, string>([
+            ['apple', 'Apple is crazy!'],
+            ['banana', 'Amazing banana!'],
+            ['pear', 'Wow pear'],
+        ]);
+        json.url = new URL('http://www.google.be');
+
+        json.searchParams = new URLSearchParams({
+            test: 'wow',
+            thats: 'amazing',
+        });
 
         return json;
     }
@@ -132,4 +147,8 @@ jokes.forEach((joke) => {
     const dadjoke = validator.validate(deserializedJoke);
 
     console.log(dadjoke.received?.getFullYear());
+    console.log(dadjoke.fruits?.get('banana'));
+
+    dadjoke.url.search = dadjoke.searchParams.toString();
+    console.log(dadjoke.url.toString());
 });

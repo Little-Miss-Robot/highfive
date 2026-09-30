@@ -499,28 +499,49 @@ circular reference, or an object that is not a plain object throws a
 registered, throws a `TypeError`. When several codecs support a value, the
 first one registered serializes it. The JSON records that codec's `type`.
 
-`DateCodec` supports every `Date`. `encode` stores `toISOString()` and throws
-a `TypeError` for an invalid `Date`. `decode` restores a `Date` from that
-exact string and throws a `TypeError` for any other value.
+Each built-in codec supports every value of its type. `encode` stores the
+representation below. `decode` restores the value from that representation
+and throws a `TypeError` for any other value. `DateCodec` also throws a
+`TypeError` when encoding an invalid `Date`. `Uint8ArrayCodec` and
+`ArrayBufferCodec` throw a `TypeError` when the buffer is detached.
+
+| Codec | Representation |
+| --- | --- |
+| `DateCodec` | `toISOString()` |
+| `BigIntCodec` | Canonical decimal string, such as `"0"`, `"1"`, or `"-42"` |
+| `URLCodec` | `href` |
+| `URLSearchParamsCodec` | `toString()` |
+| `RegExpCodec` | `{ source, flags }` using the canonical `flags` string. `lastIndex` is omitted |
+| `MapCodec` | Array of `[key, value]` pairs in insertion order |
+| `SetCodec` | Array of values in insertion order |
+| `Uint8ArrayCodec` | Array of integers from 0 through 255, covering the view |
+| `ArrayBufferCodec` | Array of integers from 0 through 255 |
 
 ```ts
-import { DateCodec, JsonSerializer } from '@littlemissrobot/highfive';
+import { DateCodec, JsonSerializer, MapCodec } from '@littlemissrobot/highfive';
 
-const serializer = new JsonSerializer([new DateCodec()]);
+const serializer = new JsonSerializer([
+    new DateCodec(),
+    new MapCodec(),
+]);
 
 const json = serializer.serialize({
     name: 'Ada',
     joined: new Date('2020-01-02T03:04:05.000Z'),
+    scores: new Map([['a', 1]]),
 });
 
 const user = serializer.deserialize<{
     name: string;
     joined: Date;
+    scores: Map<string, number>;
 }>(json);
 ```
 
-`serializerProvider` registers that serializer, including `DateCodec`, as the
-`serializer` singleton.
+`serializerProvider` registers that serializer, including `DateCodec`,
+`BigIntCodec`, `URLCodec`, `URLSearchParamsCodec`, `RegExpCodec`, `MapCodec`,
+`SetCodec`, `Uint8ArrayCodec`, and `ArrayBufferCodec`, as the `serializer`
+singleton.
 
 ### Validator
 
