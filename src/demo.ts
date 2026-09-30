@@ -5,7 +5,6 @@ import { emit } from '@decorators/emit';
 import { log } from '@decorators/log';
 import { singleFlight } from '@decorators/singleFlight';
 import { validate } from '@decorators/validate';
-import { ValidationError } from '@errors/ValidationError';
 import { createFacades } from '@helpers/createFacades';
 import { cacheProvider } from '@implementations/cache/provider';
 import { clockProvider } from '@implementations/clock/provider';
@@ -16,44 +15,20 @@ import { httpProvider } from '@implementations/http/provider';
 import { identifiersProvider } from '@implementations/identifiers/provider';
 import { loggerProvider } from '@implementations/logger/provider';
 import { serializerProvider } from '@implementations/serializer/provider';
+import { DateValidator } from '@implementations/validation/DateValidator';
+import { ObjectValidator } from '@implementations/validation/ObjectValidator';
+import { StringValidator } from '@implementations/validation/StringValidator';
+import { URLValidator } from '@implementations/validation/URLValidator';
 
 // Simple domain model
 interface Dadjoke {
     id: string
     joke: string
-    received?: Date
-    fruits?: Map<string, string>
-    url: URL
-    searchParams: URLSearchParams
+    received: Date
+    extra: {
+        url: string
+    }
 }
-
-// Type guard
-function isDadjoke(value: unknown): value is Dadjoke {
-    return (
-        typeof value === 'object'
-        && value !== null
-        && 'id' in value
-        && typeof value.id === 'string'
-        && 'joke' in value
-        && typeof value.joke === 'string'
-    );
-}
-
-// Simple validator
-const validator: Validator<Dadjoke> = {
-    validate(value: unknown): Dadjoke {
-        if (!isDadjoke(value)) {
-            throw new ValidationError([
-                {
-                    path: [],
-                    message: 'Value is no dadjoke',
-                },
-            ]);
-        }
-
-        return value;
-    },
-};
 
 // Events
 interface Events {
@@ -63,6 +38,7 @@ interface Events {
 // Container & dependencies
 const container = new DefaultContainer<{
     dadjokeEvents: () => EventBus<Events>
+    jokeValidator: () => Validator<Dadjoke>
 }>()
     .register(clockProvider)
     .register(httpProvider)
@@ -72,10 +48,20 @@ const container = new DefaultContainer<{
     .register(loggerProvider)
     .register(serializerProvider)
     .singleton('dadjokeEvents', () => new InMemoryEventBus())
+    .singleton('jokeValidator', () => {
+        return new ObjectValidator({
+            id: new StringValidator({ nonEmpty: true }),
+            joke: new StringValidator({ nonEmpty: true }),
+            received: new DateValidator(),
+            extra: new ObjectValidator({
+                url: new URLValidator(),
+            }),
+        });
+    })
 ;
 
 // Basic facades
-const { http, logger, cache, dadjokeEvents, deduplicator, idGenerator, serializer } = createFacades(container);
+const { clock, http, logger, cache, dadjokeEvents, jokeValidator, deduplicator, idGenerator, serializer } = createFacades(container);
 
 // Events
 dadjokeEvents().on('received', (dadjoke) => {
@@ -87,7 +73,7 @@ class DadjokeService {
     @log(logger())
     @emit(dadjokeEvents(), 'received')
     @cached(cache(), 'dadjoke', 4000, { serializer: serializer() })
-    @validate(validator)
+    @validate(jokeValidator())
     @singleFlight(deduplicator(), idGenerator())
     static async get(): Promise<Dadjoke> {
         const response = await http().get('https://icanhazdadjoke.com/', {
@@ -98,18 +84,9 @@ class DadjokeService {
 
         const json = await response.json();
 
-        json.received = new Date();
-        json.fruits = new Map<string, string>([
-            ['apple', 'Apple is crazy!'],
-            ['banana', 'Amazing banana!'],
-            ['pear', 'Wow pear'],
-        ]);
-        json.url = new URL('http://www.google.be');
-
-        json.searchParams = new URLSearchParams({
-            test: 'wow',
-            thats: 'amazing',
-        });
+        json.received = clock().now();
+        json.extra = {};
+        json.extra.url = 'http://www.littlemissrobot.be';
 
         return json;
     }
@@ -144,11 +121,8 @@ jokes.forEach((joke) => {
     const serializedJoke = serializer().serialize(joke);
     logger().info(`Serialized joke: ${serializedJoke}`);
     const deserializedJoke = serializer().deserialize(serializedJoke);
-    const dadjoke = validator.validate(deserializedJoke);
+    const dadjoke = jokeValidator().validate(deserializedJoke);
 
     console.log(dadjoke.received?.getFullYear());
-    console.log(dadjoke.fruits?.get('banana'));
-
-    dadjoke.url.search = dadjoke.searchParams.toString();
-    console.log(dadjoke.url.toString());
+    console.log(dadjoke.extra.url);
 });
