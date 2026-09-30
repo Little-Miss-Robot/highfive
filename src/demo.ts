@@ -15,6 +15,7 @@ import { executionProvider } from '@implementations/execution/provider';
 import { httpProvider } from '@implementations/http/provider';
 import { identifiersProvider } from '@implementations/identifiers/provider';
 import { loggerProvider } from '@implementations/logger/provider';
+import { JsonSerializer } from '@implementations/serializer/JsonSerializer';
 
 // Simple domain model
 interface Dadjoke {
@@ -96,6 +97,8 @@ class DadjokeService {
     }
 }
 
+const serializer = new JsonSerializer(validator.validate);
+
 const jokes = await Promise.all([
     DadjokeService.get(),
     DadjokeService.get(),
@@ -120,3 +123,9 @@ const jokes2 = await Promise.all([
 
 console.log(jokes);
 console.log(jokes2);
+
+jokes.forEach((joke) => {
+    const serializedJoke = serializer.serialize(joke);
+    logger().info(`Serialized joke: ${serializedJoke}`);
+    const deserializedJoke = serializer.deserialize(serializedJoke);
+});
