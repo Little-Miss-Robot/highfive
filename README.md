@@ -761,6 +761,39 @@ decorated method; use the `Timeout` contract directly when the operation must
 receive that signal. `@cached` stores `JSON.stringify` output and returns
 `JSON.parse` output as the method's result type.
 
+The same wrappers exist for a function. Pass the dependencies first, then the
+operation:
+
+- `withCache(cache, key, ttlMs?)`
+- `withRetry(retryPolicy, options?)`
+- `withTimeout(timeout, durationMs)`
+- `withSingleFlight(deduplicator, idGenerator, keyFor?)` coalesces concurrent
+  calls to that function. `keyFor` distinguishes arguments.
+- `withTrace(tracer, name?)` uses the function's name when `name` is omitted.
+- `withLog(logger, formatResult?, name?)` logs a fulfilled result. `name`
+  defaults to the function's name.
+- `withEmit(eventBus, event)`
+- `withValidate(validator)`
+
+Using the cache, retry policy, timeout, and HTTP client from the example above:
+
+```ts
+import {
+    withCache,
+    withRetry,
+    withTimeout,
+} from '@littlemissrobot/highfive';
+
+const find = withCache(cache, (id: string) => `user:${id}`, 60_000)(
+    withRetry(retryPolicy, { attempts: 3, delayMs: 250 })(
+        withTimeout(deadlines, 5_000)(async (id: string) => {
+            const response = await http.get(`/api/users/${id}`);
+            return response.json();
+        }),
+    ),
+);
+```
+
 ## Runtime requirements
 
 - Node.js 18 or newer, or a modern browser, for the web APIs used by the
